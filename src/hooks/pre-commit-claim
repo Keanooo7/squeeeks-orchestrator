@@ -1,0 +1,145 @@
+#!/bin/bash
+# pre-commit-claim — refuse a commit that touches another window's claimed paths.
+#
+# Installed into BOTH repos by .claude/orchestrator/install-hooks.sh.
+#
+# WHY THIS IS A HOOK AND NOT A RULE
+#   The "one window per path" rule has been written into CLAUDE.md, into
+#   panes/README.md, and into individual briefs. It has been broken four times
+#   anyway, including once by the same session that wrote it. A rule that asks a
+#   window to notice is not a lock. This is the smallest thing that actually
+#   refuses.
+#
+# WHAT IT DOES NOT DO
+#   It does not run tests, lint, or analyze. Gates belong to /land, which runs
+#   them once with the real toolchain; a pre-commit hook that runs `make test`
+#   makes every commit cost 100 seconds and gets disabled within a day.
+#
+# ESCAPE HATCH
+#   CLAIM_OVERRIDE=1 git commit …    — deliberate, named, and greppable in
+#   reflog. There is always a legitimate cross-window commit; the point is that
+#   it should be a decision, not an accident.
+
+set -euo pipefail
+
+ORCH="${ORCH_DIR:-/path/to/orchestrator}"
+CLAIMCJS="$ORCH/claim.cjs"
+
+# Inert if the orchestrator is not installed on this machine. A hook that fails
+# closed on a laptop that never had the tooling would block all work there.
+[ -f "$CLAIMCJS" ] || exit 0
+command -v node >/dev/null 2>&1 || exit 0
+
+if [ "${CLAIM_OVERRIDE:-}" = "1" ]; then
+  echo "pre-commit-claim: CLAIM_OVERRIDE=1 — path lock bypassed deliberately." >&2
+  exit 0
+fi
+
+# --- the git add -A ban ------------------------------------------------------
+# Not enforceable by inspecting the commit itself (the result looks identical to
+# an explicit stage), so it is enforced by its signature: a very wide stage that
+# crosses ownership boundaries. The vault collision on 2026-08-11 swept four
+# unrelated review files into a commit about the upstream art repo.
+STAGED="$(git diff --cached --name-only --diff-filter=ACMR || true)"
+[ -n "$STAGED" ] || exit 0
+
+# --- window identity ---------------------------------------------------------
+# D2 (2026-08-11, found by W1 on the first real commit): identity used to come
+# from $ORCH_WINDOW alone. Unset, the hook called `claim.cjs check` with no
+# --window, so EVERY claimed path read as foreign — including the committing
+# window's own claim. The lock refused a compliant commit and misnamed the
+# owner, and the first remedy its own error text advertised was the override.
+# A safety mechanism whose failure mode is "disable the safety mechanism" is
+# worse than no mechanism.
+#
+# Resolution order, most explicit first. The marker file exists because shell
+# state does NOT persist between an agent's tool calls, so an exported
+# ORCH_WINDOW is empty on the next command. It is per-worktree on purpose: W1
+# and W4 share one repo through different worktrees, so a shared marker in the
+# common git dir would be wrong.
+# The marker is read HERE, by the tool doing the enforcing — not reported by the
+# window. Same discipline as copyin: the kernel dereferences the pointer itself
+# rather than asking the process whether it is valid. A window cannot verify
+# itself from inside itself, so the evidence is routed around it.
+#
+# Two marker shapes are accepted. The JSON form carries (epoch, token) — the
+# generation number that makes a stale handle detectable. The bare form is
+# pre-epoch and still works, but validates nothing.
+WINDOW="${ORCH_WINDOW:-}"
+EPOCH=""
+TOKEN=""
+if [ -r ".orchestrator/window" ]; then
+  MARKER_RAW="$(cat .orchestrator/window)"
+  case "$MARKER_RAW" in
+    *'{'*)
+      WINDOW="${WINDOW:-$(printf '%s' "$MARKER_RAW" | sed -n 's/.*"window"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')}"
+      EPOCH="$(printf '%s' "$MARKER_RAW" | sed -n 's/.*"epoch"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p')"
+      TOKEN="$(printf '%s' "$MARKER_RAW" | sed -n 's/.*"token"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
+      ;;
+    *)
+      WINDOW="${WINDOW:-$(printf '%s' "$MARKER_RAW" | tr -d '[:space:]')}"
+      ;;
+  esac
+fi
+
+if [ -z "$WINDOW" ]; then
+  # Fail CLOSED, but only when it actually matters: if nothing staged is
+  # claimed by anyone, identity is irrelevant and the commit proceeds.
+  if ! printf '%s\n' "$STAGED" | tr '\n' '\0' | xargs -0 node "$CLAIMCJS" check >/dev/null 2>&1; then
+    echo "" >&2
+    echo "  ✋ COMMIT REFUSED — window identity unknown" >&2
+    echo "" >&2
+    echo "  Something you are staging is under a claim, but this shell does not know" >&2
+    echo "  which window you are, so the lock cannot tell your own claim from another's." >&2
+    echo "  It refuses rather than guess an owner." >&2
+    echo "" >&2
+    echo "  Declare yourself — pick ONE:" >&2
+    echo "    mkdir -p .orchestrator && echo W1 > .orchestrator/window   # persists; do this once per worktree" >&2
+    echo "    ORCH_WINDOW=W1 git commit …                                 # inline, per command" >&2
+    echo "" >&2
+    echo "  Do NOT reach for CLAIM_OVERRIDE here. Override is for deliberately" >&2
+    echo "  committing across another window's paths. This is not that." >&2
+    echo "" >&2
+    exit 1
+  fi
+  exit 0
+fi
+
+# NUL-delimited, because BSD xargs on macOS has no -d and filenames may contain
+# spaces. `git diff -z` would be cleaner but keeps the two branches of this
+# script from sharing one STAGED value used above.
+# shellcheck disable=SC2086
+if ! RESULT="$(printf '%s\n' "$STAGED" | tr '\n' '\0' | xargs -0 node "$CLAIMCJS" check ${WINDOW:+--window "$WINDOW"} 2>&1)"; then
+  echo "" >&2
+  echo "  ✋ COMMIT REFUSED — path lock" >&2
+  echo "" >&2
+  printf '%s\n' "$RESULT" >&2
+  echo "" >&2
+  echo "  This is FIX-3: two windows on the same work, which has happened four times." >&2
+  echo "" >&2
+  echo "  ⚠️ FIRST — is the claim above YOUR OWN?" >&2
+  echo "" >&2
+  echo "     🔴 IF IT NAMES YOUR WINDOW, CHECK ORCH_WINDOW BEFORE CONCLUDING ANYTHING." >&2
+  echo "        In the VAULT, .orchestrator/window is W0 and cannot be per-window, so the lock" >&2
+  echo "        reads you as W0 unless you tell it otherwise:" >&2
+  echo "" >&2
+  echo "            ORCH_WINDOW=W<n> git commit ..." >&2
+  echo "" >&2
+  echo "        That is the answer in the overwhelming majority of cases and it is NOT a bug." >&2
+  echo "        This message previously said 'this is a BUG, report BLOCKED and stop' — which" >&2
+  echo "        would have sent a window to report BLOCKED on a perfectly working system." >&2
+  echo "        It has nearly fired three times now (D2, D11, W4-128)." >&2
+  echo "" >&2
+  echo "     Only if ORCH_WINDOW is already set correctly AND the claim still names you is it" >&2
+  echo "     a real lock bug. THEN report BLOCKED to W0 and stop. Do NOT override." >&2
+  echo "" >&2
+  echo "  If the claim genuinely belongs to another window:" >&2
+  echo "    1. Unstage the other window's paths and commit only your own." >&2
+  echo "    2. Ask W0 to re-scope the brief so the claim covers it." >&2
+  echo "    3. Last resort, and only for a DELIBERATE cross-window commit:" >&2
+  echo "       CLAIM_OVERRIDE=1 git commit …   (shows in reflog)" >&2
+  echo "" >&2
+  exit 1
+fi
+
+exit 0
