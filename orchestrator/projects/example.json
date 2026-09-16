@@ -1,0 +1,171 @@
+{
+  "_README": "Per-project adapter. Everything project-specific lives here; the scripts in src/ are generic. A second project is a second file in this directory, never a second script. Set `vault` and `repo` to absolute paths on your machine, or export ORCH_VAULT / ORCH_REPO.",
+  "project": "example",
+  "vault": "/path/to/your/planning/vault",
+  "repo": "/path/to/your/code/repo",
+  "baseRef": "origin/main",
+  "dispatchDir": "Projects/Cleaning/dispatch",
+  "outboxDir": ".orchestrator/outbox",
+  "worktreeDir": ".worktrees",
+  "branchPrefix": "feature+",
+  "floors": {
+    "test": {
+      "_note": "Authoritative since bbc5b29 (2026-08-09) created it in the app repo. It travels with branches and worktrees, which the vault copy cannot. Keyed by branch name; the value is an object with a `count` field, or a bare number in older entries.",
+      "scope": "repo",
+      "file": ".claude/test-floor.json",
+      "keyBy": "branch",
+      "field": "count",
+      "direction": "may-rise-never-fall"
+    },
+    "design": {
+      "_note": "Sum of the numeric top-level values, ignoring keys that start with underscore. The file's own _comment states this rule. Measured 653 on origin/main at fa8ab3d.",
+      "scope": "repo",
+      "file": "test/design/design_baseline.json",
+      "mode": "sum-numeric",
+      "direction": "may-fall-never-rise"
+    },
+    "functions": {
+      "_note": "W2's lane. functions/test-floor.json is NESTED — {unit:{count},rules:{count}} — because npm test and test:rules gate different files and move independently. Field is a DOTTED PATH. Added 2026-08-12 (D83) after a W2 packet quoted the Flutter floor 3062 to a window whose suite measures 342. W0's first fix used field 'count' after misreading a probe that had printed the 'unit' sub-object as if it were the top level.",
+      "scope": "repo",
+      "file": "functions/test-floor.json",
+      "keyBy": "none",
+      "field": "unit.count",
+      "direction": "may-rise-never-fall"
+    }
+  },
+  "gates": {
+    "analyze": [
+      "make",
+      [
+        "analyze"
+      ]
+    ],
+    "test": [
+      "make",
+      [
+        "test"
+      ]
+    ],
+    "visual": [
+      "make",
+      [
+        "gallery-shots"
+      ]
+    ]
+  },
+  "windows": {
+    "W0": {
+      "role": "orchestrator",
+      "gate": "none — never runs a gate, never edits lib/",
+      "owns": [
+        "<vault>/**"
+      ],
+      "budget": "orchestrator"
+    },
+    "W1": {
+      "role": "app",
+      "gate": "make analyze + make test",
+      "owns": [
+        "lib/**",
+        "test/**",
+        "pubspec.yaml",
+        "pubspec.lock"
+      ],
+      "budget": "feature",
+      "note": "The only window in lib/. One flutter test suite at a time is the project's real throughput ceiling.",
+      "floor": "test"
+    },
+    "W2": {
+      "role": "backend",
+      "gate": "npm test in functions/",
+      "owns": [
+        "functions/**",
+        "firestore.rules",
+        "firestore.indexes.json",
+        "storage.rules"
+      ],
+      "budget": "feature",
+      "floor": "functions"
+    },
+    "W3": {
+      "role": "factory · CHARACTERS",
+      "gate": "5-gate bake loop, terminating in a blind /critic",
+      "owns": [
+        "3d-source/bake_character*.py",
+        "3d-source/bake_fox.py",
+        "3d-source/bake_bear.py",
+        "3d-source/bake_duck.py",
+        "3d-source/rig_*.py",
+        "3d-source/author_bump.py",
+        "3d-source/fit_character.py",
+        "3d-source/measure_ear_region.py",
+        "3d-source/render_ear_id.py",
+        "3d-source/blender-scenes/char_*",
+        "assets/images/char_*",
+        "assets/images/characters/**",
+        "assets/images/skins/character/**"
+      ],
+      "budget": "mechanical",
+      "floor": "test",
+      "note": "Split from the furniture lane 2026-08-25 so characters and furniture skins can run in parallel. W5 owns furniture. The two path sets are DISJOINT by construction — if a brief needs both, it is two briefs."
+    },
+    "W4": {
+      "role": "ship-ops",
+      "gate": "build / ipa / device",
+      "owns": [
+        "ios/**",
+        "android/**",
+        "macos/**",
+        "web/**",
+        "fastlane/**"
+      ],
+      "budget": "feature",
+      "note": "Lost vault ownership on 2026-08-11 to W0's single-writer rule. panes/README.md updated in the same change.",
+      "floor": "test"
+    },
+    "W5": {
+      "role": "factory · FURNITURE",
+      "gate": "5-gate bake loop, terminating in a blind /critic",
+      "owns": [
+        "3d-source/bake_*_variants.py",
+        "3d-source/blender-scenes/prop_*",
+        "assets/images/furniture/**"
+      ],
+      "budget": "mechanical",
+      "note": "Second art window, added 2026-08-25 to finish the finish ladders. 17 of 40 props carry one; 23 do not. The pattern is proven — one bake_<prop>_variants.py per family. SHARED GATE WARNING: W5 and W3 both run Blender and may both want `make test` to show the floor unmoved. Only ONE Dart suite at a time across ALL windows — pgrep -fl flutter_tester and BRANCH on the result; a check you do not branch on is a log line. Contention is attributable: the tester command line carries --packages=.../.worktrees/<NAME>/."
+    }
+  },
+  "budgets": {
+    "_note": "PROPOSED, NOT MEASURED. A model cannot meter its own token spend, so these are enforced on two sides: W0 sizes the brief to its class at dispatch, and the window stops when its context indicator crosses the checkpoint. A discipline with an observable trigger, not a meter.",
+    "mechanical": {
+      "budget": 80000,
+      "checkpoint": null,
+      "onCheckpoint": "report"
+    },
+    "feature": {
+      "budget": 250000,
+      "checkpoint": 175000,
+      "onCheckpoint": "return or handoff — never push through degraded"
+    },
+    "investigation": {
+      "budget": 400000,
+      "checkpoint": 280000,
+      "onCheckpoint": "write the findings file, then /clear"
+    },
+    "research": {
+      "budget": 300000,
+      "checkpoint": 210000,
+      "onCheckpoint": "write the report, then /clear"
+    },
+    "orchestrator": {
+      "budget": 500000,
+      "checkpoint": 350000,
+      "onCheckpoint": "self-handoff, /clear, reload orchestrator-hot.md"
+    }
+  },
+  "claim": {
+    "dir": ".claude/claims",
+    "defaultHours": 8,
+    "override": "CLAIM_OVERRIDE=1"
+  }
+}
