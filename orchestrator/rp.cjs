@@ -12,7 +12,7 @@
  * deliberately. This is the first gate that reads what the brief actually
  * COMMITS TO rather than whether it has the right headings.
  *
- * 🔑 EVERY CHECK READS GENERATED DATA, NEVER PROSE. That constraint is the
+ * KEY: EVERY CHECK READS GENERATED DATA, NEVER PROSE. That constraint is the
  * whole design, and it came from measurement: the obvious prose check — "every
  * backticked path is inside the claim globs" — fails **362 of 461 briefs
  * (79%)**, and five increasingly lenient parsers only reach 79 → 66 → 50 → 40 →
@@ -37,7 +37,7 @@
  *                          `null` WITH a `floor_why`) and a known budget class.
  *                          Mutation: delete W5's floor key.
  *
- * ⚠️ RP-3 IS SATISFIABLE BY WRITING A LIE, and this is a known, accepted
+ * WARNING: RP-3 IS SATISFIABLE BY WRITING A LIE, and this is a known, accepted
  * limit. W5 *does* have a floor (`factory-floor.json`), so `floor: null` would
  * be false and `"test"` would be the wrong floor. A presence assertion cannot
  * tell "this lane has no floor" from "nobody has named it" — it only forces
@@ -170,11 +170,11 @@ if (JSON_OUT) {
 
 console.log(`RP — ${path.basename(briefPath)}${briefId ? `  (${briefId})` : ''}`);
 for (const r of results) {
-  console.log(`  ${r.ok ? '✅' : '🔴'} ${r.id} ${r.name.padEnd(18)} ${r.detail}`);
+  console.log(`  ${r.ok ? '✅' : 'CRITICAL: '} ${r.id} ${r.name.padEnd(18)} ${r.detail}`);
   if (r.note) console.log(`       ${r.ok ? '·' : '↳'} ${r.note}`);
 }
 if (failed.length) {
-  console.log(`\n🔴 ${failed.length} of ${results.length} checks failed. This brief reviews its FORM fine —`);
+  console.log(`\nCRITICAL: ${failed.length} of ${results.length} checks failed. This brief reviews its FORM fine —`);
   console.log('   lint-brief.cjs would pass it. What failed is what it commits to.');
 }
 process.exit(failed.length ? 1 : 0);

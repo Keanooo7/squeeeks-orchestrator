@@ -4,7 +4,7 @@
 /**
  * return-gate.cjs — refuse to let a window STOP after landing without reporting.
  *
- * 🔑 THIS CLOSES THE SYSTEM'S ONE STRUCTURAL ASYMMETRY.
+ * KEY: THIS CLOSES THE SYSTEM'S ONE STRUCTURAL ASYMMETRY.
  *
  * Every step of DISPATCH leaves an artefact and has a guard: the claim
  * (claim.cjs), the packet (packet.cjs --verify), the brief (lint-brief.cjs),
@@ -16,13 +16,13 @@
  * precondition of anything. ops-orchestration-system.md:437-448 diagnosed this
  * exact asymmetry for dispatch and never applied it to return.
  *
- * ⚠️ WHY A `Stop` HOOK AND NOT `SessionEnd`.
+ * WARNING: WHY A `Stop` HOOK AND NOT `SessionEnd`.
  * `SessionEnd` cannot block — helpers/hook-handler.cjs:289-290 says so in its
  * own comment, and its [UNLANDED] warning has been advisory ever since. `Stop`
  * can: {"decision":"block","reason":…} on stdout returns the reason to the
  * model and the turn continues.
  *
- * 🔴 AND WHY IT GATES ON A `landed` MARKER RATHER THAN ON "HOLDS A CLAIM".
+ * CRITICAL: AND WHY IT GATES ON A `landed` MARKER RATHER THAN ON "HOLDS A CLAIM".
  * A `Stop` hook fires when Claude finishes RESPONDING — every turn, not at the
  * end of a session. The first version of this file blocked whenever a claim was
  * held with no matching return. That would have refused every turn of every
@@ -42,11 +42,11 @@
  * trigger. A compliant window never sees a block; one that merges a PR and
  * walks away hits it immediately.
  *
- * ⚠️ THE LIMIT, STATED PLAINLY: this catches "landed and did not report". It
+ * WARNING: THE LIMIT, STATED PLAINLY: this catches "landed and did not report". It
  * cannot catch "closed the terminal mid-brief" — no hook can block that. That
  * case belongs to W0's tick, not here.
  *
- * 🔴 STDOUT IS THE PROTOCOL. Standalone rather than a hook-handler.cjs
+ * CRITICAL: STDOUT IS THE PROTOCOL. Standalone rather than a hook-handler.cjs
  * subcommand precisely because that file prints `[OK] …` and `[INTELLIGENCE] …`
  * on other paths; one stray line makes the Stop hook's JSON unparseable.
  *
@@ -55,14 +55,14 @@
  * strands a window with no way out, and that is worse than a missed return: a
  * missed return is recoverable by the tick, a wedged session is not.
  *
- * 📌 2026-08-27 — MALFORMED IS NO LONGER SILENT, BUT IT STILL ALLOWS.
+ * NOTE: 2026-08-27 — MALFORMED IS NO LONGER SILENT, BUT IT STILL ALLOWS.
  * `readJson` swallowed a parse error and returned null, and the check below
  * read null as "nothing landed". So a marker that EXISTS but is freeform prose
  * was indistinguishable from no marker at all, and this gate was unreachable
  * for precisely the windows it was built to catch — all 8 markers on disk fail
  * `JSON.parse`. `readLanded` now separates ABSENT from MALFORMED and records
  * the malformed case to `state/malformed-landed.log`.
- * 🔴 It still allows. Blocking on a malformed marker today would brick eight
+ * CRITICAL: It still allows. Blocking on a malformed marker today would brick eight
  * live worktrees at once. Flipping to fail-closed is a SEPARATE, LATER step,
  * gated on that log going quiet — do not bring it forward.
  *
@@ -84,7 +84,7 @@ const DEFAULT_PROJECT = process.env.ORCH_PROJECT || 'cleaning';
 
 const argv = process.argv.slice(2);
 const EXPLAIN = argv.includes('--explain');
-// 📌 LOG-ONLY ROLLOUT (2026-08-27). The gate is being installed in <repo>/.claude
+// NOTE: LOG-ONLY ROLLOUT (2026-08-27). The gate is being installed in <repo>/.claude
 // for the first time — until now it was wired only in the vault, where no window
 // ever works, so it has never fired in anger. Every would-be block is recorded
 // to state/gate-blocks.log and ALLOWED. Turn blocking on by removing
@@ -138,7 +138,7 @@ function readLanded(file) {
 
 /**
  * Append one line per malformed marker, so the drain has something to count down.
- * ⚠️ Never throws. A gate that dies because its own logging failed is strictly
+ * WARNING: Never throws. A gate that dies because its own logging failed is strictly
  * worse than the missed return it was trying to record.
  */
 function logMalformed(file, win, error) {
@@ -193,13 +193,13 @@ const cfg = readJson(path.join(ORCH, 'projects', `${DEFAULT_PROJECT}.json`));
 if (!cfg || !cfg.vault || !cfg.repo) allow('no usable adapter — cannot resolve the outbox');
 
 // ── 3. Has this window FINISHED something? ─────────────────────────────────
-// 🔑 THE WHOLE DESIGN. Silent while work is in progress; speaks only once
+// KEY: THE WHOLE DESIGN. Silent while work is in progress; speaks only once
 // /land has written the marker, because only then is "no return" a break-away
 // rather than a window mid-brief.
 const landedFile = path.join(orchDir, 'landed');
 const marker = readLanded(landedFile);
 
-// 🔴 MALFORMED IS NOT ABSENT — AND IT NO LONGER PASSES.
+// CRITICAL: MALFORMED IS NOT ABSENT — AND IT NO LONGER PASSES.
 // Staged deliberately: this was log-and-allow from the moment the split landed
 // until the 8 freeform markers on disk had been drained and the log stayed
 // empty. Flipping first would have bricked eight live worktrees at once. The
@@ -208,7 +208,7 @@ const marker = readLanded(landedFile);
 if (marker.state === 'malformed') {
   logMalformed(landedFile, window, marker.error);
   block(
-    `🔴 STOP REFUSED — ${window}'s landed marker exists but is not JSON.` +
+    `CRITICAL: STOP REFUSED — ${window}'s landed marker exists but is not JSON.` +
     `\n  ${landedFile}` +
     `\n  parse error: ${marker.error}` +
     `\n\n  It was almost certainly hand-written. /land §5c writes it for you, from` +
@@ -228,7 +228,7 @@ if (!landed || !landed.brief) allow('landed marker names no brief');
 const brief = landed.brief;
 
 // ── 4. Does the outbox carry THIS brief's return? ──────────────────────────
-// 🔑 The brief match is the whole check. An outbox holds exactly ONE return
+// KEY: The brief match is the whole check. An outbox holds exactly ONE return
 // (D1379), and between ack and land it still shows the PREVIOUS brief's — so
 // "a return exists" is not the question. "A return for the brief you just
 // landed exists" is.
@@ -243,7 +243,7 @@ const HOWTO =
 
 if (!fs.existsSync(outbox)) {
   block(
-    `🔴 STOP REFUSED — ${window} landed ${brief} and filed no return.` + HOWTO
+    `CRITICAL: STOP REFUSED — ${window} landed ${brief} and filed no return.` + HOWTO
   );
 }
 
@@ -264,7 +264,7 @@ const briefInBox = field('brief');
 
 if (!status) {
   block(
-    `🔴 STOP REFUSED — ${window}'s outbox has no \`status:\` line, so tick.cjs files it as` +
+    `CRITICAL: STOP REFUSED — ${window}'s outbox has no \`status:\` line, so tick.cjs files it as` +
     ` UNPARSED and W0's file layer cannot see it at all.` + HOWTO
   );
 }
@@ -272,7 +272,7 @@ if (!status) {
 // The brief field is often "W2-129 · title" or a path, so match by containment.
 if (!briefInBox || !briefInBox.includes(brief)) {
   block(
-    `🔴 STOP REFUSED — ${window} landed ${brief}, but the outbox reports` +
+    `CRITICAL: STOP REFUSED — ${window} landed ${brief}, but the outbox reports` +
     ` \`brief: ${briefInBox || '(none)'}\`.` +
     `\n\n  That is a previous brief's return. An outbox holds exactly one and it lags` +
     `\n  between ack and land by design — so a stale one reads exactly like a filed one.` +
@@ -292,7 +292,7 @@ try {
 } catch (e) {
   const detail = [e.stdout, e.stderr].filter(Boolean).map(String).join('\n').trim();
   block(
-    `🔴 STOP REFUSED — ${window}'s return for ${brief} exists but fails return.cjs.` +
+    `CRITICAL: STOP REFUSED — ${window}'s return for ${brief} exists but fails return.cjs.` +
     `\n\n${detail}` +
     `\n\n  Fix the block at ${outbox}, then stop again.` +
     `\n  If a check does not apply — no gates ran because nothing was built — SAY THAT` +
@@ -303,7 +303,7 @@ try {
 
 // ── 6. Did a DART landing leave the floor banked on a sha that survives? ───
 //
-// 🔑 THIS IS THE ONLY MOMENT THE DEBT IS BOTH INCURRED AND COLLECTIBLE.
+// KEY: THIS IS THE ONLY MOMENT THE DEBT IS BOTH INCURRED AND COLLECTIBLE.
 // `record-floor.cjs` stamps `commit_is_pre_squash: true` whenever a floor is
 // measured on a feature branch — a note meaning *this commit stops existing the
 // moment you squash-merge; come back and re-record*. It has recorded that debt
@@ -314,7 +314,7 @@ try {
 // commit exists on origin/main — so the integrated tip is available to measure.
 // Earlier the debt cannot be paid; later nobody is looking.
 //
-// 🔴 FAIL-OPEN AT EVERY UNKNOWN, like every other branch in this file. A gate
+// CRITICAL: FAIL-OPEN AT EVERY UNKNOWN, like every other branch in this file. A gate
 // that fails closed on its own bug strands a window with no way out, and a
 // wedged session is worse than a missed return: the tick recovers a missed
 // return, nothing recovers a wedge.
@@ -365,7 +365,7 @@ if (anchor.banked) {
 // has DONE its part and is waiting on W0 must be allowed to stop, or it loops
 // forever on a demand only someone else can satisfy.
 //
-// 🔴 BUT `treeAnchor.banked` ALONE IS NOT A BAR — IT IS THE BASE STATE.
+// CRITICAL: BUT `treeAnchor.banked` ALONE IS NOT A BAR — IT IS THE BASE STATE.
 // A branch cut from main carries main's committed floor entry, whose sha is of
 // course reachable. Allowing on that would fire for every window that never
 // touched the floor at all, and the refusal would never once execute. The
@@ -384,14 +384,14 @@ if (fs.existsSync(path.join(treeRoot, '.claude', 'test-floor.json'))) {
 }
 
 block(
-  `🔴 STOP REFUSED — ${window} landed ${brief}, which changed ${dartFiles.length} Dart file(s),` +
+  `CRITICAL: STOP REFUSED — ${window} landed ${brief}, which changed ${dartFiles.length} Dart file(s),` +
   `\n  and the Dart floor on origin/main is banked on a commit that does not survive.` +
   `\n\n  ${anchor.why}` +
   `\n  floor: ${anchor.count} · commit: ${anchor.commit || '(none)'} · measured_at: ${anchor.measured_at || '(unrecorded)'}` +
   (treeAnchor && treeAnchor.present
     ? `\n  your tree: ${treeAnchor.count} @ ${treeAnchor.commit || '(none)'} — ${treeAnchor.banked ? 'reachable, but the same entry main already has' : 'also not banked'}`
     : '') +
-  `\n\n  🔑 THIS IS THE ONLY MOMENT THE DEBT IS COLLECTIBLE. ${sha} exists on origin/main` +
+  `\n\n  KEY: THIS IS THE ONLY MOMENT THE DEBT IS COLLECTIBLE. ${sha} exists on origin/main` +
   `\n  right now, so the integrated tip can be measured. record-floor.cjs has stamped` +
   `\n  this debt honestly every time and nothing has ever collected it — which is why` +
   `\n  the floor has been wrong three times.` +
@@ -403,7 +403,7 @@ block(
   `\n  retyped and the sha it stamps is HEAD of the tree it actually measured.` +
   `\n  /land §5b's own warning — "origin/main IS NOT a synonym for the tree I` +
   `\n  measured" — is what that closes.` +
-  `\n\n  ⚠️ Only bank a count you MEASURED. If you cannot run the suite now, say so` +
+  `\n\n  WARNING: Only bank a count you MEASURED. If you cannot run the suite now, say so` +
   `\n  explicitly in the return block and leave the flag set: a re-record with a` +
   `\n  copied count trades a stale sha for a fabricated measurement, which is worse.` +
   `\n\n  Then commit ${'.claude/test-floor.json'}, open the floor PR, and stop again.`

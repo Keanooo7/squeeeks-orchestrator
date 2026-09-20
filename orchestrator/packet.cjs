@@ -147,20 +147,20 @@ function build(briefPath, opts) {
 
   // ---- base: measured, never quoted -------------------------------------
   fetch(repo);
-  // 🔴 `--base <ref>` — 2026-08-20, found by W1 on W1-145.
+  // CRITICAL: `--base <ref>` — 2026-08-20, found by W1 on W1-145.
   //
   // A brief that targets ANOTHER WINDOW'S BRANCH still got `base: origin/main`
   // stamped unconditionally, while its body correctly named
   // `origin/feature+first-furniture-finish-batch`. The packet and the prose
   // disagreed, and the packet is the half a window is told to trust.
   //
-  // 🔑 W1's own words: "a window trusting the packet over the body would have
+  // KEY: W1's own words: "a window trusting the packet over the body would have
   // rebuilt W1-144's failure exactly" — which is the failure where twelve
   // ledger entries on a main-based branch go red twelve times because the art
   // they describe lives on the other branch. The packet would have sent the
   // next window straight back into it.
   //
-  // ⚠️ A sha in a packet is only true at its timestamp, so a cross-branch base
+  // WARNING: A sha in a packet is only true at its timestamp, so a cross-branch base
   // must be RE-MEASURED at paste time like any other — which `--verify` does.
   const baseRef = opts.base || cfg.baseRef || 'origin/main';
   const base = shaOf(repo, baseRef);
@@ -191,7 +191,7 @@ function build(briefPath, opts) {
   const b = (cfg.budgets || {})[cls];
   const budgetText = b
     ? `${cls} · ${Math.round(b.budget / 1000)}k` + (b.checkpoint ? ` · checkpoint at ${Math.round(b.checkpoint / 1000)}k` : ' · no checkpoint')
-    : `⚠️ UNKNOWN budget class '${cls}'`;
+    : `WARNING: UNKNOWN budget class '${cls}'`;
 
   // ---- claim -------------------------------------------------------------
   const hours = parseInt(opts.hours, 10) || (cfg.claim && cfg.claim.defaultHours) || 8;
@@ -333,7 +333,7 @@ function update(briefPath, opts) {
   // briefs produced 91 guaranteed-failing premise gates in a single command,
   // and `dispatch.cjs prepare` then refused all of them — correctly, and for a
   // reason the tool had just created.
-  // 🔑 The base sha is GENERATED, exactly like the packet, so the premise row
+  // KEY: The base sha is GENERATED, exactly like the packet, so the premise row
   // that asserts it belongs to the same regeneration. Only the row whose
   // COMMAND resolves origin/main is touched; every other premise row is the
   // brief's own authored assertion and is left alone.

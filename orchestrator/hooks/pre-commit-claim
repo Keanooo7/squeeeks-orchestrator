@@ -117,9 +117,9 @@ if ! RESULT="$(printf '%s\n' "$STAGED" | tr '\n' '\0' | xargs -0 node "$CLAIMCJS
   echo "" >&2
   echo "  This is FIX-3: two windows on the same work, which has happened four times." >&2
   echo "" >&2
-  echo "  ⚠️ FIRST — is the claim above YOUR OWN?" >&2
+  echo "  WARNING: FIRST — is the claim above YOUR OWN?" >&2
   echo "" >&2
-  echo "     🔴 IF IT NAMES YOUR WINDOW, CHECK ORCH_WINDOW BEFORE CONCLUDING ANYTHING." >&2
+  echo "     CRITICAL: IF IT NAMES YOUR WINDOW, CHECK ORCH_WINDOW BEFORE CONCLUDING ANYTHING." >&2
   echo "        In the VAULT, .orchestrator/window is W0 and cannot be per-window, so the lock" >&2
   echo "        reads you as W0 unless you tell it otherwise:" >&2
   echo "" >&2

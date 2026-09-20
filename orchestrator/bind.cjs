@@ -136,7 +136,7 @@ function cmdMint(cfg, args) {
     + `  You are ${w}, epoch ${epoch}. Write this to .orchestrator/window in every worktree,\n`
     + `  before your first commit:\n\n`
     + `    {"window":"${w}","epoch":${epoch},"token":"${token}"}\n\n`
-    + (prev ? `⚠️  supersedes epoch ${prev.epoch} at ${prev.address} — any claim or marker carrying\n`
+    + (prev ? `WARNING:  supersedes epoch ${prev.epoch} at ${prev.address} — any claim or marker carrying\n`
             + `    the old epoch is now STALE and will be refused.\n` : ''));
 }
 
@@ -198,7 +198,7 @@ function cmdRespond(cfg, args) {
 
   const warn = hs.pathProblems(e);
   process.stdout.write(`ok — ${w} answered seq ${args.seq} correctly. Lease renewed to ${e.expires_at}.\n`);
-  if (warn.length) process.stdout.write(warn.map((x) => `⚠️  ${x}`).join('\n') + '\n');
+  if (warn.length) process.stdout.write(warn.map((x) => `WARNING:  ${x}`).join('\n') + '\n');
 }
 
 /**

@@ -108,7 +108,7 @@ function openPrs() {
 
 // Map a branch to its owning window so the block reads in W-terms.
 //
-// 🔴 THIS GUESSES FROM THE SLUG, AND THE FALLTHROUGH USED TO BE `W1 app`.
+// CRITICAL: THIS GUESSES FROM THE SLUG, AND THE FALLTHROUGH USED TO BE `W1 app`.
 // Measured 2026-08-14 (wave 25): fifteen worktrees rendered as "W1 app" in the
 // STATE block, among them `feature+cropgate` and `feature+top-three` (W3's),
 // `feature+funnel-harness` (W4's) and `feature+w2-pose`. None of their slugs
@@ -116,12 +116,12 @@ function openPrs() {
 // the first thing read at session start — attributed most of the fleet's work
 // to one window.
 //
-// 🔑 A DEFAULT IS AN ASSERTION. Returning `W1 app` for "no rule matched" is a
+// KEY: A DEFAULT IS AN ASSERTION. Returning `W1 app` for "no rule matched" is a
 // tool answering a question it cannot answer, which is the same defect as a
 // filtered gallery render emitting a blank frame and exit 0. An unlabelled row
 // is read as unknown; a mislabelled one is read as fact.
 //
-// ⚠️ The real fix is to derive ownership from the CLAIM — claim.cjs already
+// WARNING: The real fix is to derive ownership from the CLAIM — claim.cjs already
 // records which window holds which paths, and that is authority rather than
 // inference. Until then this reports its own ignorance instead of inventing an
 // owner. Naming by display text is what orphans history.
@@ -152,7 +152,7 @@ function briefIndex() {
 /**
  * Which window owns this branch.
  *
- * 🔑 IT USED TO GUESS FROM THE BRANCH NAME ALONE — and had no W1 rule at all,
+ * KEY: IT USED TO GUESS FROM THE BRANCH NAME ALONE — and had no W1 rule at all,
  * so every app branch fell through to `?? unattributed`: 26 of 32 rows on
  * 2026-08-27, including every branch with a live worktree. The `path` argument
  * was already being passed in and thrown away.
@@ -241,7 +241,7 @@ function describeTrack(t) {
   const dirtyN = tree.pass ? 0 : tree.detail.split('\n').length - 1;
 
   return `${t.key}: \`${branch}\` @ \`${sha(t.cwd)}\` | tree ${tree.pass ? 'clean' : `DIRTY (${dirtyN})`}`
-       + ` | ${push.pass ? 'pushed' : push.detail.replace('pushed: ', '⚠️ ')}`
+       + ` | ${push.pass ? 'pushed' : push.detail.replace('pushed: ', 'WARNING: ')}`
        + ` | ${pr.detail.replace('pr: ', 'PR ')} | test floor ${floor}`;
 }
 
@@ -260,7 +260,7 @@ function describeTrack(t) {
  * read as "perfect" when it means "not measured", which is the exact failure
  * mode the test floor's own stale-2626 reading had.
  *
- * 🔴 THE SUM IS NOT COMPARABLE ACROSS A CHANGE IN COUNTER COUNT, and the line
+ * CRITICAL: THE SUM IS NOT COMPARABLE ACROSS A CHANGE IN COUNTER COUNT, and the line
  * now says how many counters it summed so a reader cannot miss it.
  *
  * 2026-08-20: `#577` added a SIXTH counter, `contrastFailures`, which starts at
@@ -277,7 +277,7 @@ function describeTrack(t) {
  */
 function designFloor() {
   const r = gates.run('git', ['show', 'origin/main:test/design/design_baseline.json'], MAIN, 15000);
-  if (!r.ok) return '⚠️ UNKNOWN — no design_baseline.json on origin/main';
+  if (!r.ok) return 'WARNING: UNKNOWN — no design_baseline.json on origin/main';
   try {
     const d = JSON.parse(r.out);
     const counts = Object.entries(d).filter(([k]) => !k.startsWith('_'));
@@ -286,7 +286,7 @@ function designFloor() {
     return `${total} across ${counts.length} counters  (${parts})`
       + '  — each counter may fall, never rise; the SUM is NOT comparable to a run with a different counter count';
   } catch (e) {
-    return '⚠️ UNKNOWN — design_baseline.json did not parse';
+    return 'WARNING: UNKNOWN — design_baseline.json did not parse';
   }
 }
 
@@ -309,14 +309,14 @@ function build() {
   // review, and is the case that used to vanish entirely.
   const prs = openPrs();
   if (prs === null) {
-    lines.push('open PRs: ⚠️ UNKNOWN — `gh` query failed. Run `gh pr list --state open` before dispatching.');
+    lines.push('open PRs: WARNING: UNKNOWN — `gh` query failed. Run `gh pr list --state open` before dispatching.');
   } else if (!prs.length) {
     lines.push('open PRs: none');
   } else {
     for (const p of prs.sort((a, b) => a.number - b.number)) {
       lines.push(
         `PR #${p.number}${p.isDraft ? ' (draft)' : ''} ${labelFor(p.headRefName, '')}: \`${p.headRefName}\``
-        + `${covered.has(p.headRefName) ? '' : '  ⚠️ no local ref/worktree'}`,
+        + `${covered.has(p.headRefName) ? '' : '  WARNING: no local ref/worktree'}`,
       );
     }
   }

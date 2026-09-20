@@ -11,16 +11,16 @@
  * pasted whole: 348 bare slugs, 17,390 B ≈ 4,347 tokens, no evidence, no
  * resolved value. A slug is a claim you have to open a file to cash.
  *
- * 🔑 THE TRADE. A `slug + description` card is ~183 B. Eight cards is ~1,466 B
+ * KEY: THE TRADE. A `slug + description` card is ~183 B. Eight cards is ~1,466 B
  * ≈ 367 tokens — about **one twelfth** the cost of today's whole index, and
  * unlike the index it carries the actual finding rather than a pointer to it.
  *
- * ⚠️ THIS DOES NOT REPLACE THE INDEX, IT RUNS ALONGSIDE IT. The index is
+ * WARNING: THIS DOES NOT REPLACE THE INDEX, IT RUNS ALONGSIDE IT. The index is
  * exhaustive and unranked; recall is ranked and partial. A ranked list that
  * silently misses the one memory that mattered is worse than a complete list
  * you can grep — so recall always reports what it did NOT return.
  *
- * 📌 It deliberately does NOT reuse `intelligence.cjs`'s Jaccard-trigram +
+ * NOTE: It deliberately does NOT reuse `intelligence.cjs`'s Jaccard-trigram +
  * PageRank ranker. That ranker scores `auto-memory-store.json`, a write-only
  * mirror whose backend's `search()` is literally `return []` — retired
  * 2026-08-27. This reads the memory files themselves, which are the source of
@@ -41,7 +41,7 @@ const arg = (n, d) => { const i = argv.indexOf(n); return i >= 0 && argv[i + 1] 
 const JSON_OUT = argv.includes('--json');
 const FULL = argv.includes('--full');
 const N = Math.max(1, parseInt(arg('-n', '8'), 10) || 8);
-// 🔴 READ EVERY STORE THE FLEET WRITES TO, NOT JUST THE VAULT'S.
+// CRITICAL: READ EVERY STORE THE FLEET WRITES TO, NOT JUST THE VAULT'S.
 //
 // This resolved to ONE directory — the vault's — and `CLAUDE.md` points every
 // session here to answer "has this bitten us before?". But a window running in
@@ -51,12 +51,12 @@ const N = Math.max(1, parseInt(arg('-n', '8'), 10) || 8);
 // one-sided probe answers a different question, verify a peer against state it
 // had to write — and recall could not see one of them.
 //
-// ⚠️ THE FAILURE IS NOT "RECALL RETURNS NOTHING", IT IS THAT RECALL RETURNS
+// WARNING: THE FAILURE IS NOT "RECALL RETURNS NOTHING", IT IS THAT RECALL RETURNS
 // NOTHING CONFIDENTLY. A window asks whether this has bitten us before, hears
 // no, and concludes the ground is fresh — so the tool that exists to prevent
 // repeats was quietly guaranteeing them. (W4's framing, 2026-08-30.)
 //
-// 📌 `--dir` still pins a single store, so any caller that passes it is
+// NOTE: `--dir` still pins a single store, so any caller that passes it is
 // unaffected. Only the DEFAULT widens.
 const DEFAULT_STORES = [
   '-Users-brendankeane-Desktop-Claude-Memory-Palace',
@@ -66,7 +66,7 @@ const DEFAULT_STORES = [
 const dirArg = arg('--dir', null);
 const MEM_DIRS = (dirArg ? [dirArg] : DEFAULT_STORES).filter(d => fs.existsSync(d));
 
-// 🔴 REFUSE AN EMPTY SEARCH RATHER THAN REPORTING ONE AS "A MISS IS A FINDING".
+// CRITICAL: REFUSE AN EMPTY SEARCH RATHER THAN REPORTING ONE AS "A MISS IS A FINDING".
 // A mistyped --dir used to search zero files and print the no-prior-record line,
 // which is the same confident-negative this widening exists to remove — it would
 // tell a window the ground is fresh because the path was wrong. Exit 2 (not 1):

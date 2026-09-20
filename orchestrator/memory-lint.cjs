@@ -12,7 +12,7 @@
  * YAML reads as a complete scalar and then chokes on the trailing text), and
  * 75 body wikilinks pointed at names that no longer existed.
  *
- * 🔑 A DANGLING [[LINK]] IS NOT AUTOMATICALLY A DEFECT. The convention is that
+ * KEY: A DANGLING [[LINK]] IS NOT AUTOMATICALLY A DEFECT. The convention is that
  * a link to a memory not yet written marks something worth writing later. What
  * IS a defect is a link to a memory that exists under a DIFFERENT name — the
  * reader gets nothing, and the target is right there. This separates the two.
@@ -102,7 +102,7 @@ console.log(`memory-lint — ${MEM}`);
 console.log(`  memories        ${report.memories}`);
 console.log(`  body wikilinks  ${report.links}  (resolved ${report.resolved})`);
 console.log(`  unparseable frontmatter   ${report.unparseable.length}`);
-console.log(`  🔴 renamed targets        ${report.renames.length}${FIX ? '  — REWRITTEN' : '  — run --fix-renames'}`);
+console.log(`  CRITICAL: renamed targets        ${report.renames.length}${FIX ? '  — REWRITTEN' : '  — run --fix-renames'}`);
 console.log(`  ·  links to vault pages   ${report.vaultLinks.length}  (valid in Obsidian, not memories)`);
 console.log(`  ·  forward references     ${danglingCount} links / ${Object.keys(report.dangling).length} targets not yet written`);
 

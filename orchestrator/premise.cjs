@@ -13,7 +13,7 @@
  *   W3-134  "warm_strength 0.85 is the toilet's outlier"       every appliance ships 0.85
  *   W4-119  "SUBMIT.md must be reconciled"                     the deliverable already existed
  *
- * 🔑 EVERY ONE WAS A ONE-COMMAND CHECK. The rule "verify before asserting"
+ * KEY: EVERY ONE WAS A ONE-COMMAND CHECK. The rule "verify before asserting"
  * already existed and was already written down; what did not exist was anything
  * MECHANICAL behind it. A rule with nothing mechanical behind it is how the
  * paid-task cap sat one edit from silent disagreement for weeks
@@ -33,16 +33,16 @@
  *   expect <needle> :: <cmd>   PASS iff cmd's combined output CONTAINS needle
  *   absent <needle> :: <cmd>   PASS iff it does NOT
  *
- * ⚠️ The needle is a literal substring, not a regex — a regex here would invite
+ * WARNING: The needle is a literal substring, not a regex — a regex here would invite
  * the `a-negative-grep-must-match-the-defect-not-a-token` failure, where the
  * pattern matches something benign and the check passes for the wrong reason.
  *
- * 🔴 A NON-ZERO EXIT FROM THE COMMAND IS NOT A FAILURE BY ITSELF. `grep -c`
+ * CRITICAL: A NON-ZERO EXIT FROM THE COMMAND IS NOT A FAILURE BY ITSELF. `grep -c`
  * returns 1 on zero matches, and a chain that aborts there silently truncated a
  * real check on 2026-08-24. Only the needle decides. The exit code is REPORTED
  * so a broken command cannot masquerade as a satisfied `absent`.
  *
- * ⚠️  CHECKS RUN IN THE CLEANING REPO, SO THEY CANNOT SEE VAULT PATHS. A check like
+ * WARNING:  CHECKS RUN IN THE CLEANING REPO, SO THEY CANNOT SEE VAULT PATHS. A check like
  * `git ls-tree origin/main Projects/Cleaning/reviews/` returns EMPTY — not because the
  * file is missing, but because that tree lives in the VAULT, a different repository.
  * The empty result is indistinguishable from a real absence, which is the same shape as
@@ -50,7 +50,7 @@
  * brief depends on a vault artefact, say so in prose rather than in a check.
  * (W2-154 tripped exactly this and the gate refused the dispatch, correctly.)
  *
- * 🔴 READ THE BRANCH, NOT THE WORKING TREE. Checks run with cwd = the Cleaning
+ * CRITICAL: READ THE BRANCH, NOT THE WORKING TREE. Checks run with cwd = the Cleaning
  * ROOT CHECKOUT, which stays on `main` but is NOT pulled — worktrees do the work,
  * so nobody has a reason to update it. On 2026-08-25 it sat TWELVE commits behind
  * `origin/main`, and the same question answered two ways:
@@ -170,7 +170,7 @@ function main() {
     let vacuous = null;
 
     // ── ANTI-VACUITY 2 · `absent` is FAIL-OPEN on a broken command ───────────
-    // 🔴 This is the one that matters. On a non-zero exit the catch above puts
+    // CRITICAL: This is the one that matters. On a non-zero exit the catch above puts
     // the ERROR TEXT in `out`; the error text does not contain the needle; so
     // `absent` reports a confident PASS for a command that never ran. A typo'd
     // path, a missing ref, an unfetched `origin/main` — every one of them
@@ -196,19 +196,19 @@ function main() {
       `  ${ok ? '✅' : '❌'} ${r.mode.padEnd(6)} "${r.needle}"  exit=${code}\n`
       + `     $ ${r.cmd}\n`
       + `     ${first.slice(0, 120)}${out.split('\n').filter(Boolean).length > 1 ? ' …' : ''}\n`
-      + (vacuous ? `     🔴 VACUOUS — ${vacuous}\n` : ''));
+      + (vacuous ? `     CRITICAL: VACUOUS — ${vacuous}\n` : ''));
     if (!ok) failed++;
   }
   if (failed) {
     process.stdout.write(
-      `\n🔴 ${failed} PREMISE CHECK(S) FAILED — the brief describes something that is not true.\n`
+      `\nCRITICAL: ${failed} PREMISE CHECK(S) FAILED — the brief describes something that is not true.\n`
       + '   Do NOT "fix" the check to match the world. Re-read the premise: the work may be\n'
       + '   done, may never have applied, or may be true of a NEARBY object. Rewrite or retire\n'
       + '   the brief. If the check itself is wrong, say so in the brief and prove it.\n');
     process.exit(1);
   }
   process.stdout.write(`\n✅ ${rows.length} premise check(s) pass — true at ${new Date().toISOString()}.\n`
-    + '   ⚠️ True NOW. A premise is only true at its timestamp; re-run at land if the brief is long-lived.\n');
+    + '   WARNING: True NOW. A premise is only true at its timestamp; re-run at land if the brief is long-lived.\n');
 }
 
 main();

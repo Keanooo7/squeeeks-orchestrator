@@ -13,7 +13,7 @@
  *
  * WHAT THIS CAN AND CANNOT DO
  *
- * 🔑 It checks the SHAPE of a return, never the TRUTH of it. It cannot know
+ * KEY: It checks the SHAPE of a return, never the TRUTH of it. It cannot know
  * whether `+3082` was measured or copied — that is why the contract demands
  * literal output rather than a claim, and why W0 still re-runs the numbers it
  * cares about. A tool that implied otherwise would be the fourth instrument
@@ -52,7 +52,7 @@ function loadConfig(name) {
  * count reads as success. This is the single highest-value check in the file.
  */
 /**
- * 🔴 EXCEPT WHEN THE RED RUN IS THE FINDING — 2026-08-20, found by W1.
+ * CRITICAL: EXCEPT WHEN THE RED RUN IS THE FINDING — 2026-08-20, found by W1.
  *
  * The contract demands literal gate output, and a window proving a mutation
  * turns a test red MUST quote a red line to do it. This check flagged that
@@ -60,7 +60,7 @@ function loadConfig(name) {
  * could not pass the gate without paraphrasing the literal output the contract
  * requires. Twice in two briefs.
  *
- * ⚠️ AND IT IS SELF-AMPLIFYING: quoting the checker's own complaint back into
+ * WARNING: AND IT IS SELF-AMPLIFYING: quoting the checker's own complaint back into
  * the return re-triggers it on the quote, so the count climbs as the window
  * explains itself.
  *
@@ -70,7 +70,7 @@ function loadConfig(name) {
  *   2. the nearest preceding non-blank line announces evidence — a mutation,
  *      a control, a before-state, a deliberate red.
  *
- * 🔑 The check itself is unchanged for everything else. An UNANNOUNCED `-N` is
+ * KEY: The check itself is unchanged for everything else. An UNANNOUNCED `-N` is
  * still the single highest-value signal in this file: `origin/main` was red at
  * #135 and nobody noticed, because the rising pass count reads as success.
  */
@@ -157,7 +157,7 @@ function checkOne(file, opts = {}) {
 
   for (const c of CHECKS) if (!c.test(text)) problems.push(c.fail);
 
-  // 🔴 The one that has actually shipped a red main.
+  // CRITICAL: The one that has actually shipped a red main.
   const tails = failureTail(text);
   for (const l of tails) problems.push(`FAILURE TAIL in a gate line — ${l}`);
 
@@ -188,7 +188,7 @@ function report(r) {
     process.stdout.write(`FAIL  ${name}${r.brief ? `  (${r.brief})` : ''}  (${r.problems.length})\n`);
     for (const p of r.problems) process.stdout.write(`        ${p}\n`);
   }
-  for (const n of r.notes) process.stdout.write(`        📌 ${n}\n`);
+  for (const n of r.notes) process.stdout.write(`        NOTE: ${n}\n`);
 }
 
 function main() {

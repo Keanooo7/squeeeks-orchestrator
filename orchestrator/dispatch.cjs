@@ -17,7 +17,7 @@
  *          ends up building the thing it imagined rather than the thing that
  *          was specified."
  *
- * 🔑 THE MECHANISM. Every other step leaves an artefact — a claim file, a
+ * KEY: THE MECHANISM. Every other step leaves an artefact — a claim file, a
  * PACKET block, a linter exit code. THE SEND LEAVES NOTHING. So a brief that
  * was 3/4 dispatched is indistinguishable on disk from one that was 4/4, and
  * every check W0 runs reports success.
@@ -56,9 +56,9 @@ function loadConfig(name) {
 }
 
 /**
- * ⚠️ WARN — DO NOT REFUSE — when the claim about to be released never filed a return.
+ * WARNING: WARN — DO NOT REFUSE — when the claim about to be released never filed a return.
  *
- * 🔴 WHY THE RELEASE BELOW STAYS BARE. `claim.cjs:406-407` keeps `--brief`
+ * CRITICAL: WHY THE RELEASE BELOW STAYS BARE. `claim.cjs:406-407` keeps `--brief`
  * optional precisely so W0 retains an administrative release, and this is that
  * release: a rotation from the outgoing brief to the incoming one. Passing
  * `--brief <the new id>` here would hit the mismatch guard at `claim.cjs:409`
@@ -95,7 +95,7 @@ function warnUnreturnedClaim(cfg, window) {
     if (filed && filed.includes(held.brief)) return;
 
     process.stdout.write(
-      `⚠️  ${window} holds '${held.brief}' but its outbox reports 'brief: ${filed || '(none)'}'.\n`
+      `WARNING:  ${window} holds '${held.brief}' but its outbox reports 'brief: ${filed || '(none)'}'.\n`
       + `    Rotating the claim now discards the only record that a return was owed.\n`
       + `    Releasing anyway — this is W0's administrative release.\n`
       + `    Outbox: ${outbox}\n\n`);
@@ -113,7 +113,7 @@ function pendingDir(cfg) {
   return d;
 }
 
-// 🔴 `base` added 2026-08-20. `prepare` REGENERATES the packet, so without a
+// CRITICAL: `base` added 2026-08-20. `prepare` REGENERATES the packet, so without a
 // passthrough it silently overwrote a cross-branch base with origin/main —
 // undoing the fix W1 asked for, one layer up from where it was applied. A brief
 // targeting another window's branch would have been prepared pointing at main,
@@ -180,9 +180,9 @@ function cmdPrepare(cfg, args) {
   //    Each was a one-command check. `verify before asserting` already existed as
   //    a rule; nothing mechanical stood behind it, which is the same defect the
   //    codebase diagnoses in its own `SYNC:` comments one layer down.
-  //    🔴 --no-premise-check is the deliberate, greppable escape hatch.
+  //    CRITICAL: --no-premise-check is the deliberate, greppable escape hatch.
   {
-    // 🔴 FETCH FIRST — 81 of the 86 premise rows in the corpus (94%) query
+    // CRITICAL: FETCH FIRST — 81 of the 86 premise rows in the corpus (94%) query
     // `origin/main`, and until 2026-08-27 the only fetch in this pipeline lived
     // in `packet.cjs` at step 2, i.e. AFTER this check. So the gate that exists
     // to catch a false premise was itself reading a stale ref: a brief whose
@@ -195,14 +195,14 @@ function cmdPrepare(cfg, args) {
     } catch (e) {
       // Offline is not a reason to refuse a dispatch, but it IS a reason to say
       // so — otherwise a green premise check is indistinguishable from a stale one.
-      process.stdout.write('⚠️  git fetch failed — premise rows querying `origin/main` are being\n'
+      process.stdout.write('WARNING:  git fetch failed — premise rows querying `origin/main` are being\n'
         + '   evaluated against whatever this machine last saw. Treat a PASS as provisional.\n\n');
     }
     const pr = run('premise.cjs', [file]);
     if (pr.code === 3) {
       if (!args['no-premise-check']) {
         process.stdout.write(
-          '🔴 NO PREMISE CHECK IN THIS BRIEF — refusing to prepare.\n\n'
+          'CRITICAL: NO PREMISE CHECK IN THIS BRIEF — refusing to prepare.\n\n'
           + '   Add a ```premise block declaring the observations the brief depends on:\n\n'
           + '     ```premise\n'
           + '     expect  <literal substring>  ::  <command that should print it>\n'
@@ -213,7 +213,7 @@ function cmdPrepare(cfg, args) {
           + '   Deliberate opt-out: --no-premise-check (greppable, and say why in the brief).\n');
         process.exit(1);
       }
-      process.stdout.write('⚠️  premise check SKIPPED by --no-premise-check\n\n');
+      process.stdout.write('WARNING:  premise check SKIPPED by --no-premise-check\n\n');
     } else if (!pr.ok) {
       process.stdout.write(`${pr.out}\n❌ PREMISE FAILED — no claim taken, nothing prepared.\n`);
       process.exit(1);
@@ -254,7 +254,7 @@ function cmdPrepare(cfg, args) {
 
   process.stdout.write(
     `${l.out.trim()}\n\n`
-    + `🔴 ${id} IS PREPARED AND **NOT SENT**.\n`
+    + `CRITICAL: ${id} IS PREPARED AND **NOT SENT**.\n`
     + `   Nothing has reached ${window}. A live claim is not evidence a window is working.\n\n`
     + `   1. SendMessage to ${window}:  DISPATCH  ${file}\n`
     + `   2. Then confirm:  node .claude/orchestrator/dispatch.cjs sent ${id}\n\n`
@@ -282,7 +282,7 @@ function cmdPending(cfg) {
   for (const f of files) {
     const r = JSON.parse(fs.readFileSync(path.join(d, f), 'utf8'));
     const mins = Math.round((Date.now() - Date.parse(r.prepared_at)) / 60000);
-    process.stdout.write(`🔴 UNDISPATCHED  ${r.brief}  ${r.window}  prepared ${mins}m ago  ${r.file}\n`);
+    process.stdout.write(`CRITICAL: UNDISPATCHED  ${r.brief}  ${r.window}  prepared ${mins}m ago  ${r.file}\n`);
   }
   process.exitCode = 1;
 }

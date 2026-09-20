@@ -214,7 +214,7 @@ function collect(cfg) {
     const c = byWindow[w] || null;
     const acked = acks[w] && h.updated && Date.parse(acks[w]) >= Date.parse(h.updated);
 
-    // 🔴 `acked` ABOVE AND `claimAcked` BELOW ARE DIFFERENT FACTS, and the name
+    // CRITICAL: `acked` ABOVE AND `claimAcked` BELOW ARE DIFFERENT FACTS, and the name
     // collision is why the second went missing for a week. `acked` is W0 having
     // SEEN A RETURN (state/acked.json). `claimAcked` is THE WINDOW HAVING
     // STARTED THE BRIEF (claims/W<n>.json `acked_at`, written only by
@@ -225,7 +225,7 @@ function collect(cfg) {
     // instrument, dropped it on the floor. So the one question the tick exists
     // to answer was the one field it did not carry.
     //
-    // ⚠️ Unacked alone is NOT an alarm: W0 takes the claim before dispatching,
+    // WARNING: Unacked alone is NOT an alarm: W0 takes the claim before dispatching,
     // so every claim is legitimately unacked for the minutes between prepare
     // and the window reading its brief. It becomes a signal only once it has
     // been unacked for longer than a window could plausibly take to start.
@@ -241,7 +241,7 @@ function collect(cfg) {
       updated: h.updated,
       age: ageOf(h.updated),
       acked: !!acked,
-      // ⚠️ staleUnacked deliberately does NOT feed needsW0. `needsW0` means
+      // WARNING: staleUnacked deliberately does NOT feed needsW0. `needsW0` means
       // "this window is waiting on W0", and a window that never started is not
       // waiting on anybody — folding it in would overload a flag that already
       // has a precise meaning and make `► N waiting on W0` a lie. It gets its
@@ -264,7 +264,7 @@ function main() {
 
   const ackIdx = argv.indexOf('--ack');
   if (ackIdx !== -1) {
-    // 🔴 VALIDATE AGAINST THE ROSTER, NOT A LITERAL. This read `/^W[1-4]$/`
+    // CRITICAL: VALIDATE AGAINST THE ROSTER, NOT A LITERAL. This read `/^W[1-4]$/`
     // while `collect()` above walks `Object.keys(cfg.windows)` — so W5, which
     // IS in the roster, prints a row, and can RETURN, could never be acked.
     // 2026-08-30: W5-12 (landed as #631 four days earlier) held the ► flag with
@@ -281,7 +281,7 @@ function main() {
     for (const w of targets) {
       const outbox = path.join(cfg.repo, cfg.outboxDir, `${w}.md`);
       if (!fs.existsSync(outbox)) { process.stderr.write(`tick: ${w} has no outbox to ack\n`); continue; }
-      // 🔴 ACK THE SAME QUANTITY `collect()` COMPARES, NOT THE MTIME.
+      // CRITICAL: ACK THE SAME QUANTITY `collect()` COMPARES, NOT THE MTIME.
       //
       // 2026-08-14: this wrote `statSync(outbox).mtime` while `collect()` tests
       // `acks[w] >= h.updated`, and `readHeader` prefers the `updated:` KEY when
@@ -317,7 +317,7 @@ function main() {
   for (const r of rows) {
     const flag = r.needsW0 ? '►' : (r.acked ? '·' : ' ');
     const ack = r.claim && !r.claim.expired
-      ? (r.claim.acked_at ? ' ACKED' : (r.staleUnacked ? ' 🔴UNACKED' : ' unacked'))
+      ? (r.claim.acked_at ? ' ACKED' : (r.staleUnacked ? ' CRITICAL: UNACKED' : ' unacked'))
       : '';
     const claim = r.claim
       ? (r.claim.expired ? `claim EXPIRED (${r.claim.brief || '-'})` : `claim ${r.claim.brief || '-'}${ack} → ${r.claim.expires}`)
@@ -350,7 +350,7 @@ function main() {
     process.stdout.write('nothing waiting on W0.\n');
   }
 
-  // 🔑 A CLAIM NOBODY ACKED IS THE ONE THING THIS TICK COULD NOT SEE.
+  // KEY: A CLAIM NOBODY ACKED IS THE ONE THING THIS TICK COULD NOT SEE.
   // ops-orchestration-system.md:776-779 designates `acked_at` as the liveness
   // signal and collect() dropped it, so a window that never picked up its brief
   // was indistinguishable from one working quietly. W0 twice reported a window
@@ -364,7 +364,7 @@ function main() {
   const unacked = rows.filter((r) => r.staleUnacked);
   if (unacked.length) {
     process.stdout.write(
-      `\n🔴 ${unacked.length} claim(s) never acked — the window may never have opened the brief:\n`);
+      `\nCRITICAL: ${unacked.length} claim(s) never acked — the window may never have opened the brief:\n`);
     for (const r of unacked) {
       process.stdout.write(
         `    ${r.window} ${r.claim.brief} · claimed ${r.claim.ageHours}h ago, no ack\n`);
@@ -393,7 +393,7 @@ function main() {
   try {
     const pend = fs.existsSync(pdir) ? fs.readdirSync(pdir).filter((f) => f.endsWith('.json')) : [];
     if (pend.length) {
-      process.stdout.write(`\n🔴 ${pend.length} brief(s) PREPARED BUT NEVER SENT — a live claim is not a dispatch:\n`);
+      process.stdout.write(`\nCRITICAL: ${pend.length} brief(s) PREPARED BUT NEVER SENT — a live claim is not a dispatch:\n`);
       for (const f of pend) {
         const r = JSON.parse(fs.readFileSync(path.join(pdir, f), 'utf8'));
         const mins = Math.round((Date.now() - Date.parse(r.prepared_at)) / 60000);
@@ -405,7 +405,7 @@ function main() {
     // A missing directory is normal and already handled by existsSync above, so
     // anything reaching here is a real fault. Say so — a guard that fails
     // silently is worse than no guard.
-    process.stdout.write(`\n⚠️  pending-dispatch check FAILED: ${e.message}\n`);
+    process.stdout.write(`\nWARNING:  pending-dispatch check FAILED: ${e.message}\n`);
   }
   // Warmth is reported for every worktree, unattributed — a claim records a
   // brief, not a directory, so W0 reads the mapping rather than the tool
@@ -423,7 +423,7 @@ function main() {
   }
 
   for (const r of stale) {
-    process.stdout.write(`⚠️  ${r.window} holds a live claim but reports ${r.status} — release it or it blocks the next brief:\n`
+    process.stdout.write(`WARNING:  ${r.window} holds a live claim but reports ${r.status} — release it or it blocks the next brief:\n`
       + `      node .claude/orchestrator/claim.cjs release ${r.window}\n`);
   }
 
@@ -441,10 +441,10 @@ function main() {
   // naming a brief W0 never wrote is either a peer-to-peer dispatch or a typo,
   // and both are worth a line. This needs nothing tick cannot already reach.
   //
-  // ⚠️ It reports; it does not refuse. A peer dispatch is not misconduct — W3's
+  // WARNING: It reports; it does not refuse. A peer dispatch is not misconduct — W3's
   // was verified through the claim registry and produced good work — and a tool
   // that blocked it would cost more than the blindness it cures.
-  // ⚠️ ANCHORED ON ORCH (__dirname), like the _pending block above, and for the
+  // WARNING: ANCHORED ON ORCH (__dirname), like the _pending block above, and for the
   // reason that block already records: the first draft of THIS block read a
   // `VAULT` that is not in scope, and a bare `catch {}` swallowed the
   // ReferenceError so it printed nothing at all. That is the same defect the
@@ -456,11 +456,11 @@ function main() {
     const unlogged = rows.filter((r) => r.claim && !r.claim.expired && r.claim.brief
       && !briefFiles.some((f) => f.startsWith(`${r.claim.brief}-`) || f === `${r.claim.brief}.md`));
     for (const r of unlogged) {
-      process.stdout.write(`📌 ${r.window} holds claim ${r.claim.brief}, and W0 wrote no brief by that id.\n`
+      process.stdout.write(`NOTE: ${r.window} holds claim ${r.claim.brief}, and W0 wrote no brief by that id.\n`
         + '      A peer-dispatched brief, or a typo. Not an error — but it is work W0 cannot see.\n');
     }
   } catch (e) {
-    process.stdout.write(`⚠️  claim/dispatch reconciliation failed: ${e.message}\n`
+    process.stdout.write(`WARNING:  claim/dispatch reconciliation failed: ${e.message}\n`
       + `      (looked in ${ddir})\n`);
   }
 

@@ -165,14 +165,14 @@ function branchOf(cwd) {
 /**
  * Is `commit` already in `ref`'s history?
  *
- * 🔑 THE PREDICATE IS REACHABILITY, NOT THE BRANCH NAME YOU HAPPEN TO STAND ON.
+ * KEY: THE PREDICATE IS REACHABILITY, NOT THE BRANCH NAME YOU HAPPEN TO STAND ON.
  * This repo squash-merges, so a sha measured on a feature branch stops existing
  * the moment the brief lands — `git show <commit>` resolves to nothing and a
  * provenance field that still LOOKS checkable is worse than one that is merely
  * old. A commit reachable from the merge target cannot be squashed away: it is
  * already in that history.
  *
- * ⚠️ `run` returns { ok, out } and NO exit code — `.code` is undefined here, so
+ * WARNING: `run` returns { ok, out } and NO exit code — `.code` is undefined here, so
  * testing it silently evaluates false and every sha reads as unreachable. `ok`
  * IS the exit-status channel: execFileSync throws on non-zero, and
  * `merge-base --is-ancestor` communicates entirely through its exit status.
@@ -239,7 +239,7 @@ function floorAnchor(repo, branch = 'main', { from = 'target' } = {}) {
  * would produce false failures.
  */
 /**
- * 🔴 A FILTERED RUN MUST NEVER BE RECORDABLE AS A FLOOR.
+ * CRITICAL: A FILTERED RUN MUST NEVER BE RECORDABLE AS A FLOOR.
  *
  * `make test` is literally `flutter test $(ONLY)` (Makefile:327), and make
  * imports the environment as make variables — so an exported `ONLY=` filters
@@ -282,7 +282,7 @@ function unfilteredEnv(env = process.env) {
  * Returns { ok, counts, detail, out }. `ok:false` means DO NOT RECORD THIS.
  */
 /**
- * 🔴 A LOG THAT WAS NEVER WRITTEN CANNOT BE GREPPED.
+ * CRITICAL: A LOG THAT WAS NEVER WRITTEN CANNOT BE GREPPED.
  *
  * W1 found this on W1-241, against this very function: the standing instruction
  * is to grep the WHOLE suite log for a failure field rather than reading the
@@ -332,7 +332,7 @@ function measureTests(cwd) {
   if (!counts) {
     return { ok: false, counts: null, out: r.out, detail: 'test: could not parse a count from the run output' };
   }
-  // 🔴 THE `-N` TAIL IS THE ENTIRE SIGNAL AND IT IS THE LAST FIELD.
+  // CRITICAL: THE `-N` TAIL IS THE ENTIRE SIGNAL AND IT IS THE LAST FIELD.
   // `+3985 ~2 -1` is a FAILURE with a RISING pass count.
   if (counts.failed > 0) {
     return {
@@ -418,7 +418,7 @@ function testFloor(cwd, { record = false } = {}) {
             + `in ${file}, and none inheritable from origin/main.\n`
             + `A missing floor is UNKNOWN, never 0 — a run cannot "beat" a floor that was never `
             + `measured. Measure on origin/main and record it there.\n`
-            + `⚠️ Do NOT read a floor out of this working tree: a branch cut before the last floor `
+            + `WARNING: Do NOT read a floor out of this working tree: a branch cut before the last floor `
             + `land carries a stale 'main' entry committed alongside it.`,
       counts,
     };

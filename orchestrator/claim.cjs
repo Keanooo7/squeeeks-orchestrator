@@ -20,7 +20,7 @@
  *   claim.cjs check <path> [<path>…] [--window W1]   exit 1 if claimed by another
  *   claim.cjs list
  *
- * 🔴 `ack` was IMPLEMENTED AND UNDOCUMENTED from its introduction until
+ * CRITICAL: `ack` was IMPLEMENTED AND UNDOCUMENTED from its introduction until
  *    2026-08-14, described only in the DESIGN NOTES ~220 lines below. Every
  *    window read this block, none read the note, and `acked_at` sat frozen
  *    for all four windows for two days while `list` dutifully printed
@@ -241,7 +241,7 @@ function cmdClaim(cfg, args) {
   // which does not exist. The real file is under `features/characters/domain/
   // services/` and `check` on it returned "1 path(s) clear" the whole time.
   //
-  // 🔑 This tool locks path STRINGS and never asked whether they resolve, so a
+  // KEY: This tool locks path STRINGS and never asked whether they resolve, so a
   // claim on a typo reported identically to a claim on a real file — and in the
   // dangerous direction: you believe you are protected while you are not.
   //
@@ -253,7 +253,7 @@ function cmdClaim(cfg, args) {
     && !fs.existsSync(path.resolve(cfg.repo, p)));
   if (missing.length) {
     process.stderr.write(
-      `claim: ⚠️  ${missing.length} literal path(s) do not exist under ${cfg.repo}:\n`
+      `claim: WARNING:  ${missing.length} literal path(s) do not exist under ${cfg.repo}:\n`
       + missing.map((p) => `  ${p}\n`).join('')
       + `Claiming anyway — a brief may be about to create them. But if this is a\n`
       + `typo, the lock protects nothing and the real file stays open to any window.\n`);
@@ -277,7 +277,7 @@ function cmdClaim(cfg, args) {
     // was live, the file was on disk, and no window had ever seen it. `list`
     // showed a working window.
     //
-    // 🔑 "A LIVE CLAIM IS NOT EVIDENCE A WINDOW IS WORKING — it is evidence YOU
+    // KEY: "A LIVE CLAIM IS NOT EVIDENCE A WINDOW IS WORKING — it is evidence YOU
     // DISPATCHED." Those are different facts and only the second was recorded.
     // Same shape as the `check` bug (D124): the reassuring state belongs to a
     // step that never completed.
@@ -286,7 +286,7 @@ function cmdClaim(cfg, args) {
     //   claim.cjs ack W2 --brief W2-16
     // which is the first thing it does on any brief anyway. An unacked claim is
     // now visibly distinct from a working one, instead of identical to it.
-    // 🔴 EXCEPT WHEN THE BRIEF HAS NOT CHANGED — 2026-08-19.
+    // CRITICAL: EXCEPT WHEN THE BRIEF HAS NOT CHANGED — 2026-08-19.
     // `dispatch.cjs prepare` does release-then-claim on EVERY run (:115-117),
     // and W0 re-prepares the same brief routinely: to regenerate a packet whose
     // base has moved, or to WIDEN a claim after a window asks for more paths.
@@ -295,7 +295,7 @@ function cmdClaim(cfg, args) {
     // working — an alarm that is always on is ignored exactly as fast as one
     // that never fires (tick.cjs:126-127).
     //
-    // 🔑 W0 acted on that reading twice in one day, telling Brendan that W1 had
+    // KEY: W0 acted on that reading twice in one day, telling Brendan that W1 had
     // never picked up a brief it had already finished and MERGED. The field was
     // not stale; it was being reset by the orchestrator itself.
     //
@@ -428,7 +428,7 @@ function cmdRelease(cfg, args) {
     process.exit(1);
   }
 
-  // 🔴 LOG THE RELEASE, BECAUSE THIS FILE ALREADY PROMISES THAT IT DOES.
+  // CRITICAL: LOG THE RELEASE, BECAUSE THIS FILE ALREADY PROMISES THAT IT DOES.
   //
   // The refusal above tells W0 that an administrative release "will be logged".
   // It was not. `release` was a bare unlinkSync — the claim file is DELETED and
@@ -441,7 +441,7 @@ function cmdRelease(cfg, args) {
   // `claim.cjs list` reports only current holdings, and it declined to read W0's
   // state files directly, which is the correct boundary.
   //
-  // 🔑 SO "WAS THIS RELEASED OR DID IT EXPIRE?" WAS UNANSWERABLE FROM STATE, for
+  // KEY: SO "WAS THIS RELEASED OR DID IT EXPIRE?" WAS UNANSWERABLE FROM STATE, for
   // everyone including W0. A destructive action with no trace is one a window
   // cannot distinguish from a fault — and the window is then reasoning about a
   // fleet event with nothing to read.
@@ -565,7 +565,7 @@ function cmdCheck(cfg, args) {
       if (!mine) {
         process.stdout.write(
           `ok — ${files.length} path(s) clear (free of other windows' claims)\n`
-          + `⚠️  BUT ${self} HOLDS NO LIVE CLAIM. This says the path is FREE, not that it is YOURS.\n`
+          + `WARNING:  BUT ${self} HOLDS NO LIVE CLAIM. This says the path is FREE, not that it is YOURS.\n`
           + `    Nothing protects it and the pre-commit lock will not defend it.\n`
           + `    If you are starting a brief, W0 must claim it:\n`
           + `      node .claude/orchestrator/claim.cjs claim ${self} --brief <id> --paths '<globs>'\n`,
@@ -589,7 +589,7 @@ function cmdCheck(cfg, args) {
       );
       if (uncovered.length) {
         process.stdout.write(
-          `⚠️  ${uncovered.length} of ${files.length} path(s) are FREE but NOT YOURS.\n`
+          `WARNING:  ${uncovered.length} of ${files.length} path(s) are FREE but NOT YOURS.\n`
           + `    ${self} holds ${mine.brief || '(no brief)'}, whose globs do not cover:\n`
           + uncovered.map((f) => `      ${f}\n`).join('')
           + `    held globs: ${(mine.paths || []).join(' ') || '(none)'}\n`
@@ -661,7 +661,7 @@ function cmdList(cfg) {
 // nonsense read exactly like success. A flag is only known relative to a verb.
 const COMMAND_FLAGS = {
   claim: new Set(['window', 'brief', 'paths', 'hours', 'project']),
-  // `brief` added 2026-08-16 (D1180). ⚠️ THE GUARD IN `cmdRelease` WAS WRITTEN
+  // `brief` added 2026-08-16 (D1180). WARNING: THE GUARD IN `cmdRelease` WAS WRITTEN
   // FIRST AND WAS DEAD ON ARRIVAL WITHOUT THIS LINE: `enforceCommandFlags` runs
   // before the subcommand, so `release --brief …` exited 2 on an unknown flag
   // and the new check never executed. Caught by running the refusal case as a

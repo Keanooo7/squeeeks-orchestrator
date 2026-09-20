@@ -11,7 +11,7 @@
  * sixteen branches sat ahead of `origin/main` — the oldest for eleven weeks —
  * while nobody could see them as a list.
  *
- * 🔑 STATUS IS DERIVED, NEVER TYPED. A hand-maintained `status:` field is a
+ * KEY: STATUS IS DERIVED, NEVER TYPED. A hand-maintained `status:` field is a
  * second representation of a fact git already holds, and two representations of
  * one fact drift — this vault has the receipts (`test-floor.json` read 2975
  * while the suite measured 2990). So every status here is computed from git and
@@ -24,7 +24,7 @@
  *   dispatched  the brief carries a generated PACKET, but no branch exists
  *   draft       no PACKET — it has never been prepared for a window
  *
- * ⚠️ `landed` IS THE ONLY STATUS WITH HARD EVIDENCE. The other three are
+ * WARNING: `landed` IS THE ONLY STATUS WITH HARD EVIDENCE. The other three are
  * absence arguments: "no branch exists" is also true of a brief whose branch was
  * archived, and `archive/*` tags are invisible to `git branch` by design. A
  * brief showing `dispatched` may have been finished and tidied away. Do not read
@@ -61,7 +61,7 @@ const git = (args, d = REPO) => {
 };
 
 // ── evidence, gathered once ──────────────────────────────────────────────────
-// 🔴 THE COMMIT LOG CANNOT ANSWER "DID THIS LAND". This repo squash-merges, so
+// CRITICAL: THE COMMIT LOG CANNOT ANSWER "DID THIS LAND". This repo squash-merges, so
 // the branch name never reaches the commit message: PR #595's subject is
 // `fix(gate): style_review honours the declared watermark (#595)` and the slug
 // `style-review-ignores-the-watermark-every-sibling-honours` appears **zero**
@@ -151,10 +151,10 @@ if (open.length) {
   for (const r of open) console.log(`     ${(r.id || '?').padEnd(8)} ${r.slug}`);
 }
 if (!mergedBranches) {
-  console.log('\n  🔴 `gh` returned nothing — NO merged-PR evidence was available, so every');
+  console.log('\n  CRITICAL: `gh` returned nothing — NO merged-PR evidence was available, so every');
   console.log('     brief below is under-reported. This is not "nothing landed"; it is');
   console.log('     "nothing could be checked". Re-run with gh authenticated.');
 }
-console.log('\n  ⚠️ only `landed` has hard evidence. The other three are absence arguments —');
+console.log('\n  WARNING: only `landed` has hard evidence. The other three are absence arguments —');
 console.log('     an archived branch is invisible to `git branch` by design, so a tidied-away');
 console.log('     brief reads as `dispatched`. Read them as "no landing evidence found".');

@@ -29,7 +29,7 @@
  *   record-floor.cjs 2990 --branch main --commit 2cff932 --note "…"
  *   record-floor.cjs --show                       # print, write nothing
  *
- * 🔴 `--measure` IS THE PATH THAT CLOSES THE TYPED-NUMBER HOLE.
+ * CRITICAL: `--measure` IS THE PATH THAT CLOSES THE TYPED-NUMBER HOLE.
  *   Every other path takes the count as an ARGUMENT — a human reads a terminal
  *   and retypes a number into a command, which is the step where 4180 becomes
  *   4108. `gates.cjs` has had `testFloor(cwd, { record })` since it was written
@@ -141,7 +141,7 @@ function main() {
   // that is wrong is harder to correct than one that is merely old, because it
   // still looks checkable. So: a dirty tree cannot be vouched for, and says so.
   //
-  // 📌 HOISTED ABOVE THE COUNT so `--measure` fails fast. This check used to sit
+  // NOTE: HOISTED ABOVE THE COUNT so `--measure` fails fast. This check used to sit
   // after the count was read, which cost nothing when the count was typed and
   // costs a full ~2-minute suite run when it is measured — a run whose result
   // was going to be refused either way.
@@ -232,7 +232,7 @@ function main() {
   // distinguishable from one that never had any. The obligation it records is
   // W3's practice, which is the correct one: re-measure on the INTEGRATED TIP
   // after the squash and re-record, so `commit` names a tree that still exists.
-  // 🔴 THE PREDICATE IS REACHABILITY, NOT THE BRANCH NAME YOU HAPPEN TO STAND ON.
+  // CRITICAL: THE PREDICATE IS REACHABILITY, NOT THE BRANCH NAME YOU HAPPEN TO STAND ON.
   // Until 2026-08-16 this read `measuredOn !== branch`, which asks "am I on the
   // merge target?" when the question the flag exists to answer is "will this sha
   // survive the squash?" Those come apart in exactly the case the block above
@@ -246,7 +246,7 @@ function main() {
   // Ask git instead. A commit reachable from the merge target cannot be squashed
   // away — it is already in that history.
   const recordedCommit = args.commit || head;
-  // 🔑 ONE DEFINITION, TWO CALLERS. This predicate used to be spelled out here
+  // KEY: ONE DEFINITION, TWO CALLERS. This predicate used to be spelled out here
   // and is now `gates.commitReachable` — because return-gate.cjs COLLECTS the
   // debt this line STAMPS, and a second copy of the rule is exactly how the two
   // floor files drifted apart in the first place. The reasoning, including why
@@ -267,7 +267,7 @@ function main() {
 
   if (preSquash) {
     process.stderr.write(
-      `record-floor: ⚠️  measured on '${measuredOn}', recording against '${branch}'.\n`
+      `record-floor: WARNING:  measured on '${measuredOn}', recording against '${branch}'.\n`
       // Name the sha actually WRITTEN, not HEAD. They differ whenever --commit is
       // passed, which is the whole point of that flag, so the old message could
       // warn about a sha the file does not contain.

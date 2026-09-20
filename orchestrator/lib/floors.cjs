@@ -112,7 +112,7 @@ function readSpec(spec, cfg, branch, ref) {
   // "generated · DO NOT HAND-EDIT", so the wrong number carried the authority of
   // a measured one.
   //
-  // 📌 W0's FIRST fix was also wrong, and in the way this file exists to prevent:
+  // NOTE: W0's FIRST fix was also wrong, and in the way this file exists to prevent:
   // it set field to 'count' after reading a probe that had printed the file's
   // `unit` SUB-OBJECT as though it were the top level. The file is nested —
   // {unit:{count},rules:{count}} — so obj['count'] is undefined and it resolved
@@ -148,7 +148,7 @@ function resolve(name, cfg, branch, ref) {
   const spec = (cfg.floors || {})[name];
   if (!spec) {
     return { name, status: UNKNOWN, value: null, source: null,
-             text: `⚠️ UNKNOWN — no '${name}' floor configured for this project`,
+             text: `WARNING: UNKNOWN — no '${name}' floor configured for this project`,
              detail: null };
   }
 
@@ -168,7 +168,7 @@ function resolve(name, cfg, branch, ref) {
       : '';
     return {
       name, status: UNKNOWN, value: null, source: primary.file,
-      text: `⚠️ UNKNOWN — ${primary.reason} for '${branch}' in ${path.basename(spec.file)}${extra}`,
+      text: `WARNING: UNKNOWN — ${primary.reason} for '${branch}' in ${path.basename(spec.file)}${extra}`,
       detail: 'never 0 — an unmeasured floor is not a floor of zero; measure it before gating on it',
     };
   }
@@ -176,7 +176,7 @@ function resolve(name, cfg, branch, ref) {
   if (legacy && legacy.value !== null && legacy.value !== primary.value) {
     return {
       name, status: CONFLICT, value: primary.value, source: primary.file,
-      text: `${primary.value}  ⚠️ CONFLICT — ${legacySpec.scope} copy says ${legacy.value}`,
+      text: `${primary.value}  WARNING: CONFLICT — ${legacySpec.scope} copy says ${legacy.value}`,
       detail: `${spec.file} (authoritative, travels with the code) vs `
             + `${legacySpec.scope}:${legacySpec.file} (read by gates.cjs:26). Reconcile before trusting either.`,
     };

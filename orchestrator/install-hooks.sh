@@ -50,7 +50,7 @@ for r in "$VAULT" "$REPO"; do
       # for the whole session, while every window ran the pre-D2 copy and the
       # lock refused windows their own claims. A status check that cannot see
       # drift is a false green on the deployment itself.
-      # 🔴 2026-08-20: REACHABILITY, not just content. This reported CURRENT for
+      # CRITICAL: 2026-08-20: REACHABILITY, not just content. This reported CURRENT for
       # the VAULT while core.hooksPath pointed at a directory that did not exist
       # (a path from before the vault was moved), so git never ran the hook at
       # all. Every vault commit had been running with NO lock, and a commit the
@@ -61,7 +61,7 @@ for r in "$VAULT" "$REPO"; do
       if [ -n "$hp" ]; then
         case "$hp" in /*) hpr="$hp" ;; *) hpr="$r/$hp" ;; esac
         if [ ! -x "$hpr/pre-commit" ]; then
-          echo "🔴 UNREACHABLE  $r"
+          echo "CRITICAL: UNREACHABLE  $r"
           echo "           core.hooksPath = $hp"
           echo "           git runs THAT, not $dest, and there is no executable pre-commit there."
           echo "           every commit in this repo is running with NO path lock."
@@ -77,7 +77,7 @@ for r in "$VAULT" "$REPO"; do
       elif [ "$(shasum -a 256 "$dest" | cut -d' ' -f1)" = "$(shasum -a 256 "$SRC" | cut -d' ' -f1)" ]; then
         echo "CURRENT    $dest"
       else
-        echo "⚠️  STALE  $dest"
+        echo "WARNING:  STALE  $dest"
         echo "           installed copy differs from $SRC — re-run: install-hooks.sh"
         STALE_FOUND=1
       fi

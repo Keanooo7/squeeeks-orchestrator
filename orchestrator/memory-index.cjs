@@ -12,7 +12,7 @@
  * 348 of 348 present, zero orphans — which is exactly why it was worth
  * mechanising before it wasn't. An index nothing checks is a claim, not a fact.
  *
- * 🔑 IT PRESERVES THE CURATION RATHER THAN REPLACING IT. The category
+ * KEY: IT PRESERVES THE CURATION RATHER THAN REPLACING IT. The category
  * assignment is human work and better than anything derivable — "Tests that
  * pass and prove nothing" is a judgement, not a keyword. So the existing
  * slug→category map is read back out of the current MEMORY.md and kept, in its
@@ -26,7 +26,7 @@
  *   · the same memory listed twice                   (two rows, one fact)
  *   · the rendered file over its own byte cap        (later groups get cut)
  *
- * ⚠️ ONE LINK PER MEMORY, NO PROSE PER ENTRY, NO TITLES. Titles restated the
+ * WARNING: ONE LINK PER MEMORY, NO PROSE PER ENTRY, NO TITLES. Titles restated the
  * slugs, cost 10.6 KB, and pushed the file past its read limit so later groups
  * vanished entirely. The slug IS the claim; the description belongs to
  * retrieval, not to the index.
@@ -126,17 +126,17 @@ if (JSON_OUT) { console.log(JSON.stringify(report, null, 2)); process.exit(drift
 console.log(`memory-index — ${INDEX}`);
 console.log(`  memories on disk   ${report.memories}`);
 console.log(`  linked in index    ${report.listed}  across ${report.categories} categories`);
-console.log(`  rendered size      ${report.bytes} B / ${CAP} B cap` + (report.bytes > CAP ? '  🔴 OVER' : '  ok'));
-console.log(`  unlisted memories  ${missing.length}` + (missing.length ? '  🔴 invisible to every session' : ''));
+console.log(`  rendered size      ${report.bytes} B / ${CAP} B cap` + (report.bytes > CAP ? '  CRITICAL: OVER' : '  ok'));
+console.log(`  unlisted memories  ${missing.length}` + (missing.length ? '  CRITICAL: invisible to every session' : ''));
 for (const s of missing) console.log(`      + ${s}`);
-console.log(`  orphan links       ${orphans.length}` + (orphans.length ? '  🔴 named file does not exist' : ''));
+console.log(`  orphan links       ${orphans.length}` + (orphans.length ? '  CRITICAL: named file does not exist' : ''));
 for (const s of orphans) console.log(`      - ${s}`);
 console.log(`  duplicate links    ${dupes.length}`);
 for (const d of dupes) console.log(`      ! ${d.slug}  in ${d.categories.join(' + ')}`);
 
 if (WRITE) {
   if (report.bytes > CAP) {
-    console.error(`\n🔴 REFUSING TO WRITE — ${report.bytes} B exceeds the ${CAP} B cap.`);
+    console.error(`\nCRITICAL: REFUSING TO WRITE — ${report.bytes} B exceeds the ${CAP} B cap.`);
     console.error('   Merge or retire memories; do not raise the cap. Past it, later groups are');
     console.error('   silently truncated out of the session and nothing reports it.');
     process.exit(1);

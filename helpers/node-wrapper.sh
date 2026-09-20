@@ -17,7 +17,7 @@
 # the auto-memory import, the pre-commit path lock and the Stop return gate.
 # Nothing reports this: a failing hook is not a failing session.
 #
-# 🔑 It only intervenes when bare `node` does not resolve, so an already-correct
+# KEY: It only intervenes when bare `node` does not resolve, so an already-correct
 # environment is untouched, and it picks the highest installed nvm version rather
 # than hardcoding one — a version bump must not silently re-break the hooks.
 if ! command -v node >/dev/null 2>&1; then

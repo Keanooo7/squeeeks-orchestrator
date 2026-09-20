@@ -16,13 +16,13 @@
  *          .../night_transparency_test.dart   363 ------
  *          7 files changed, 286 insertions(+), 725 deletions(-)
  *
- * 🔑 THE COMMIT STAT AND THE MERGE DIFF ARE DIFFERENT QUESTIONS, AND ONLY THE
+ * KEY: THE COMMIT STAT AND THE MERGE DIFF ARE DIFFERENT QUESTIONS, AND ONLY THE
  * SECOND ONE IS THE PR. The PR body would have advertised the first.
  *
  * The window caught it by diffing against `main` instead of trusting its own
  * stat. Nothing in the tooling required that, so this does.
  *
- * ⚠️ Deletions outside the claim are the dangerous half — an addition outside a
+ * WARNING: Deletions outside the claim are the dangerous half — an addition outside a
  * claim is a scope error the path lock already catches at commit time, but a
  * DELETION arrives from being stale rather than from writing, so no lock sees it.
  *
@@ -52,7 +52,7 @@ function cfg() {
 /**
  * Claim matching is DELEGATED to claim.cjs, not reimplemented here.
  *
- * 🔴 It used to be reimplemented, and the two drifted while this comment asserted
+ * CRITICAL: It used to be reimplemented, and the two drifted while this comment asserted
  * they had not. The old comment said "Same glob semantics as claim.cjs — `**`
  * spans separators, `*` does not", and that was TRUE for wildcards and FALSE for
  * the case a human is most likely to type: a bare directory.
@@ -90,7 +90,7 @@ function main() {
   const c = cfg();
   const i = process.argv.indexOf('--cwd');
   const j = process.argv.indexOf('--base');
-  // 🔴 process.cwd() WINS. `c.repo` is the ROOT CHECKOUT, which CLAUDE.md says is
+  // CRITICAL: process.cwd() WINS. `c.repo` is the ROOT CHECKOUT, which CLAUDE.md says is
   // the integration tree and never a working tree — so it is ALWAYS behind
   // origin/main. Defaulting to it made this gate diff a 15-commits-stale tree and
   // print a confident "rebase onto origin/main" at windows that had already
@@ -102,7 +102,7 @@ function main() {
   let globs = [];
   try { globs = JSON.parse(fs.readFileSync(claimFile, 'utf8')).paths || []; } catch (e) { /* none */ }
   if (!globs.length) {
-    process.stdout.write(`⚠️  ${win} holds no live claim — cannot check a merge diff against nothing.\n`
+    process.stdout.write(`WARNING:  ${win} holds no live claim — cannot check a merge diff against nothing.\n`
       + '   Take the claim first, or pass the paths this branch is allowed to touch.\n');
     process.exit(2);
   }
@@ -129,7 +129,7 @@ function main() {
       + '   FIX: run this from inside your worktree, or pass --cwd <worktree>.\n');
     process.exit(2);
   }
-  // 🔴 REFUSE ON A DIRTY TREE. This compares origin/main against HEAD, so it is
+  // CRITICAL: REFUSE ON A DIRTY TREE. This compares origin/main against HEAD, so it is
   // BLIND to uncommitted work — run before committing it returns a confident
   // "0 file(s) … every changed path is inside the claim" while the actual change
   // sits unstaged. W3 flagged it: "not a bug, but it reads like a pass and it is
@@ -155,7 +155,7 @@ function main() {
 
   let raw = '';
   try {
-    // 🔴 TWO TREES, NOT A MERGE BASE. `base...HEAD` is merge-base-relative and shows
+    // CRITICAL: TWO TREES, NOT A MERGE BASE. `base...HEAD` is merge-base-relative and shows
     // only what HEAD ADDED since diverging — so a branch that is merely BEHIND shows
     // ZERO files and the check passes. That is precisely the case this exists to catch.
     // `git diff <base> HEAD` compares the trees directly and surfaces what HEAD is
@@ -184,17 +184,17 @@ function main() {
     return;
   }
   const deleting = outside.filter((r) => r.del > 0);
-  process.stdout.write(`\n🔴 ${outside.length} PATH(S) OUTSIDE ${win}'s CLAIM.\n`);
+  process.stdout.write(`\nCRITICAL: ${outside.length} PATH(S) OUTSIDE ${win}'s CLAIM.\n`);
   if (deleting.length) {
     const lines = deleting.reduce((n, r) => n + r.del, 0);
     process.stdout.write(
-      `🔴 ${deleting.length} OF THEM DELETE ${lines} LINE(S) YOU DO NOT OWN.\n\n`
+      `CRITICAL: ${deleting.length} OF THEM DELETE ${lines} LINE(S) YOU DO NOT OWN.\n\n`
       + '   This is almost always a STALE BRANCH, not a bad edit: something landed on\n'
       + `   ${base} after you branched, and a PR from here proposes reverting it.\n`
       + '   Your own commit stat will NOT show this — it is true of your commit and\n'
       + '   silent about the merge. Only this diff is the PR.\n\n'
       + `   FIX: rebase onto ${base}, then re-run this.\n`
-      + '   ⚠️ If the rebase conflicts because an earlier PR was SQUASH-merged, verify\n'
+      + '   WARNING: If the rebase conflicts because an earlier PR was SQUASH-merged, verify\n'
       + '   the content is genuinely already present before resetting — a reset --hard\n'
       + '   in a shared worktree is how someone else\'s PR gets reverted.\n');
   }

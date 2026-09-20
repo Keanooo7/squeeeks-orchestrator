@@ -127,14 +127,14 @@ function lint(file, cfg) {
   }
 
   // --- 1b. a ```premise block must exist -----------------------------------
-  // 🔑 THIS IS THE DECODE STAGE, AND UNTIL 2026-08-27 IT WAS OPTIONAL — so it
+  // KEY: THIS IS THE DECODE STAGE, AND UNTIL 2026-08-27 IT WAS OPTIONAL — so it
   // was carried by 23 of 584 briefs (3.9%). On 2026-08-24/25 five briefs were
   // dispatched on premises already false AT DISPATCH TIME, and every one was
   // caught by the receiving WINDOW, after it had acked, cut a worktree and
   // started reading — the most expensive moment available. Each was a
   // one-command check. `premise.cjs` existed for all five; nothing required it.
   //
-  // ⚠️ A brief with nothing to verify is legitimate — greenfield work asserts
+  // WARNING: A brief with nothing to verify is legitimate — greenfield work asserts
   // nothing about the current tree. Say so IN the block, so "I checked and
   // there was nothing to check" stays distinguishable from "I forgot":
   //     ```premise
@@ -206,11 +206,11 @@ function lint(file, cfg) {
       // — but W4's lane was still missed. W4 ships BUILD ARTEFACTS, and a brief
       // whose Bar named build/ios/ipa/cleaning-1.0.0+6.ipa was told it "names no
       // reference file" while naming a 92 MB file that exists.
-      // 🔑 The lesson the two earlier fixes both stated and neither applied: ask
+      // KEY: The lesson the two earlier fixes both stated and neither applied: ask
       // which artefacts EACH LANE actually produces, not which one just failed.
       //   W1 dart · W2 ts + rules · W3 py + png/webp/blend
       //   W4 ipa/xcarchive/plist/pbxproj/entitlements/xcconfig/storekit · docs md/json
-      // ⚠️ `+` belongs in the character class. Flutter names build artefacts
+      // WARNING: `+` belongs in the character class. Flutter names build artefacts
       // `<version>+<build>` — cleaning-1.0.0+6.ipa — and without `+` the match
       // starts AFTER it, yielding the path fragment `6.ipa`, which of course
       // does not exist. The error then reads "names 6.ipa, which does not
@@ -229,7 +229,7 @@ function lint(file, cfg) {
       // `ios/Podfile.lock`. A brief whose Bar was that exact file — tracked, on
       // origin/main, and the literal subject of the brief — was told it "names no
       // reference file".
-      // 🔑 Applying the stated lesson rather than the instance: `.resolved` and
+      // KEY: Applying the stated lesson rather than the instance: `.resolved` and
       // `.lock` are both PIN files, both tracked, and both are what a ship-ops
       // brief measures. Added together for that reason, not because one failed.
       const paths = body.match(/[\w.+/-]+\.(png|jpg|jpeg|webp|md|dart|json|blend|ts|py|cjs|js|sh|rules|yaml|yml|ipa|xcarchive|plist|pbxproj|entitlements|xcconfig|storekit|resolved|lock)\b/g) || [];
@@ -246,7 +246,7 @@ function lint(file, cfg) {
         // in either repo" while being live on main and readable by any window.
         // A brief citing anything added recently was unlandable.
         //
-        // 🔑 This does NOT weaken the check — a path that exists nowhere still
+        // KEY: This does NOT weaken the check — a path that exists nowhere still
         // errors. It only stops a STALE tree from answering an existence
         // question about a repo that has moved.
         const onMain = (p) => {
@@ -255,7 +255,7 @@ function lint(file, cfg) {
             return true;
           } catch { return false; }
         };
-        // ⚠️ EXPAND `~`. CLAUDE.md REQUIRES a visual return to cite its frame by
+        // WARNING: EXPAND `~`. CLAUDE.md REQUIRES a visual return to cite its frame by
         // absolute sandbox path — `make gallery-shots` renders into
         // ~/Library/Containers/com.example.cleaning/Data/Documents/… and the
         // repo copy is destroyed by /land — so a Bar naming the only durable
@@ -289,7 +289,7 @@ function lint(file, cfg) {
   // sha; a window that trusted the Task would have branched from a stale base
   // and every gate it ran would have been green about the wrong tree.
   //
-  // 🔑 Only INSTRUCTION-SHAPED shas are flagged. A brief that cites `87c793f`
+  // KEY: Only INSTRUCTION-SHAPED shas are flagged. A brief that cites `87c793f`
   // as the commit that landed a fix is making a historical claim and must stay
   // untouched — rewriting those would corrupt real provenance to fix a
   // different problem. So the test is a sha NEAR branch/rebase language, not a
@@ -338,14 +338,14 @@ function lint(file, cfg) {
   // sat outside the claim. The pre-commit path lock would have refused the
   // commit AFTER the gates had already run.
   //
-  // 🔑 A claim that matches nothing reads exactly like a claim that matches
+  // KEY: A claim that matches nothing reads exactly like a claim that matches
   // everything it should: `claim.cjs list` prints it back verbatim either way.
   // Nothing downstream can tell the two apart, which is why it has to be caught
   // here, at generation time. W2 found it by inspection and asked for this rule.
   const claimLine = text.match(/^claim:\s*(.+)$/m);
   if (claimLine) {
     // Strip the window token, the expiry clause and the PROPOSED suffix.
-    // ⚠️ Strip the LEADING window token first, then only the TRAILING
+    // WARNING: Strip the LEADING window token first, then only the TRAILING
     // `· expires …` clause. Splitting on the first `·` deletes every path and
     // makes this rule vacuous — it passed W2-129, the very brief that motivated
     // it, until that was caught. A lint rule that cannot fail is the defect it
@@ -362,13 +362,13 @@ function lint(file, cfg) {
       // whose literal prefix does not exist cannot match anything under it.
       let prefix = g.split(/[*?[]/)[0].replace(/\/+$/, '');
       if (!prefix) continue;
-      // ⚠️ A brief may legitimately claim a file it is about to CREATE — a new
+      // WARNING: A brief may legitimately claim a file it is about to CREATE — a new
       // verifier script, a new spec. Checking the full literal path would fail
       // every such brief, so for a wildcard-free path that looks like a FILE
       // (has an extension), check its PARENT DIRECTORY instead. The directory
       // not existing is the real defect; the file not existing is the point.
       // Caught 2026-08-19 while writing W3-120, before it refused a valid brief.
-      // 🔑 A GLOB AND A LITERAL PATH ASK DIFFERENT QUESTIONS.
+      // KEY: A GLOB AND A LITERAL PATH ASK DIFFERENT QUESTIONS.
       // A glob FILTERS what exists, so `functions/test/**` matching nothing is
       // a real defect — that is the W2-129 case this rule was written for.
       // A literal path may name a file, or a whole directory, that the brief is
@@ -447,7 +447,7 @@ function main() {
     process.exit(2);
   }
 
-  // 🔴 A BRIEF ID MUST RESOLVE TO EXACTLY ONE FILE (2026-08-16, D1181, found by W1).
+  // CRITICAL: A BRIEF ID MUST RESOLVE TO EXACTLY ONE FILE (2026-08-16, D1181, found by W1).
   //
   // A claim names a brief ID and nothing else. On 2026-08-16 W0 numbered a new
   // brief `W4-76` (the fridge) without checking that `W4-76-home-framing.md`
@@ -455,7 +455,7 @@ function main() {
   // W1 opened the OTHER W4-76, and correctly concluded that a queued twin of its
   // own brief was about to rebuild work it had just landed.
   //
-  // 🔑 Nobody misread anything. TWO WINDOWS REASONED CORRECTLY FROM THE SAME
+  // KEY: Nobody misread anything. TWO WINDOWS REASONED CORRECTLY FROM THE SAME
   // STRING AND REACHED DIFFERENT BRIEFS. That is not a discipline problem and no
   // amount of "read more carefully" fixes it — the identifier was ambiguous.
   //
@@ -464,7 +464,7 @@ function main() {
   // duplicates are tolerated when retired: a brief carrying RETIRED or
   // SUPERSEDED in its first 40 lines is a record, not a live instruction, and
   // cannot be claimed against by mistake.
-  // ⚠️ AN ADDENDUM IS NOT A DUPLICATE — it is SUPPOSED to share its brief's id.
+  // WARNING: AN ADDENDUM IS NOT A DUPLICATE — it is SUPPOSED to share its brief's id.
   // The first version of this check flagged every `<id>[-slug].addendum-NN.md`
   // and turned 349 briefs into 130 failures on its first run. A gate that cries
   // wolf on day one gets relaxed rather than debugged, so it excludes addenda
@@ -476,7 +476,7 @@ function main() {
       return /\b(RETIRED|SUPERSEDED)\b/i.test(fs.readFileSync(f, 'utf8').split('\n').slice(0, 40).join('\n'));
     } catch { return false; }
   };
-  // 🔴 SCAN THE WHOLE DIRECTORY, NOT JUST THE FILES PASSED IN.
+  // CRITICAL: SCAN THE WHOLE DIRECTORY, NOT JUST THE FILES PASSED IN.
   //
   // `dispatch.cjs prepare` lints ONE file. If this check only compared the
   // argument list, a brand-new brief would never collide with anything and the
@@ -500,7 +500,7 @@ function main() {
     .map(([id, fs_]) => [id, fs_.filter((f) => !retired(f))])
     .filter(([, live]) => live.length > 1);
 
-  // ⚠️ BLOCK ONLY ON A COLLISION INVOLVING A BRIEF YOU ARE ACTUALLY LINTING.
+  // WARNING: BLOCK ONLY ON A COLLISION INVOLVING A BRIEF YOU ARE ACTUALLY LINTING.
   //
   // Reading the whole directory is what makes the check work at dispatch time —
   // and it also surfaces 14 historical duplicates that predate this gate. Failing

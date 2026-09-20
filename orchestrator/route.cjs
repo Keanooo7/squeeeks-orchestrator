@@ -9,7 +9,7 @@
  * selector is not an optimisation — it is the thing that decides whether the
  * pipeline survives a Tuesday.
  *
- * 🔴 NOTHING HERE READS THE PROSE OF THE REQUEST, AND THAT IS THE DESIGN.
+ * CRITICAL: NOTHING HERE READS THE PROSE OF THE REQUEST, AND THAT IS THE DESIGN.
  * The obvious version — a classifier looking for "looks off", "spacing",
  * "quick fix" — forces every visual question down the most expensive path, and
  * on this project most questions are visual. Worse, the same session writes
@@ -28,7 +28,7 @@
  *   FULL      ≥2 windows, crosses a gate boundary, or a visual bar whose
  *             reference does not exist on disk                 → the same seven
  *
- * ⚠️ THE OVERRIDE COUNTER — WITHOUT IT, EVERYTHING IS EXPRESS IN TWO WEEKS.
+ * WARNING: THE OVERRIDE COUNTER — WITHOUT IT, EVERYTHING IS EXPRESS IN TWO WEEKS.
  * A downgrade costs one unverified sentence, and the same session writes both
  * the request and the override. So every override is recorded, and three in a
  * rolling week prints the tally. **It is not a block. It is a number, in front
@@ -79,12 +79,12 @@ function printTally(entries) {
   const weekAgo = Date.now() - 7 * 24 * 3600 * 1000;
   const recent = entries.filter(e => Date.parse(e.at) >= weekAgo);
   if (!recent.length) { console.log('  override ledger: nothing in the last 7 days'); return; }
-  console.log(`\n  ⚠️ OVERRIDE TALLY — ${recent.length} in the last 7 days`);
+  console.log(`\n  WARNING: OVERRIDE TALLY — ${recent.length} in the last 7 days`);
   for (const e of recent.slice(-8)) {
     console.log(`     ${e.at.slice(0, 16).replace('T', ' ')}  ${e.from} → ${e.to}   ${e.why || '(no reason given)'}`);
   }
   if (recent.length >= 3) {
-    console.log(`\n  🔴 ${recent.length} overrides in a week. This is not a block — it is the number.`);
+    console.log(`\n  CRITICAL: ${recent.length} overrides in a week. This is not a block — it is the number.`);
     console.log('     A route that is always overridden is a threshold that is wrong. Fix the');
     console.log('     threshold, or stop overriding it; leaving both is how everything becomes');
     console.log('     EXPRESS in two weeks.');
@@ -167,7 +167,7 @@ console.log(`  measured  ${changed.length} changed file(s) · ${windowCount} win
 for (const r of reasons) console.log(`  because   ${r}`);
 if (changed.length && changed.length <= 12) for (const f of changed) console.log(`     ${f}`);
 else if (changed.length) console.log(`     (${changed.length} files — too many to list)`);
-for (const f of foreign) console.log(`  🔴 ${f.file}  is under ${f.window}'s claim (${f.pattern})`);
+for (const f of foreign) console.log(`  CRITICAL: ${f.file}  is under ${f.window}'s claim (${f.pattern})`);
 
 if (OVERRIDE) {
   console.log(`\n  recorded: ${route} → ${final} — "${WHY}"`);
