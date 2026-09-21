@@ -112,7 +112,15 @@ distinction is real.
 
 ## Provenance
 
-Extracted from a private application repository. Development was agent-assisted: the majority
+Extracted from a private monorepo on 2026-09-16. The commit history of the development period is
+not part of this extract; the commits here are the extract and fixes made after it.
+
+The helper scaffolding came from [claude-flow](https://github.com/ruvnet/claude-flow)
+(`helpers/secure-fs.js:3` still says so; `orchestrator/install-hooks.sh:6` names the claude-flow
+pre-commit boilerplate it deliberately does not install). The pipeline design and everything
+built on that scaffolding is mine.
+
+Development was agent-assisted: the majority
 of commits in the source repository carry `Co-Authored-By` trailers naming an AI coding agent.
 The design commitments above were human decisions; the implementations were largely
 agent-written under review.
