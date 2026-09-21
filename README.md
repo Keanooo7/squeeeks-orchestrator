@@ -7,7 +7,7 @@ codebase. The hard problems are not prompting — they are **mutual exclusion**,
 claim checkable**, and **refusing work that only looks finished**. This is the code that
 does those three things.
 
-~6,700 lines of dependency-free Node (CommonJS) and bash. No npm install, no `package.json`,
+~6,500 lines of dependency-free Node (CommonJS) and bash (6,554 by `git ls-files '*.js' '*.cjs' '*.mjs' '*.sh' | xargs cat | wc -l`). No npm install, no `package.json`,
 no third-party imports anywhere in `orchestrator/`.
 
 ## The problem
